@@ -1,6 +1,6 @@
 package com.github.mikee2509.eventscript;
 
-import com.gihub.mikee2509.eventscript.EventScriptLexer;
+import com.github.mikee2509.eventscript.EventScriptLexer;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
 

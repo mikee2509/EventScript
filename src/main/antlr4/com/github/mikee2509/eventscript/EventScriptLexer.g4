@@ -4,8 +4,8 @@ lexer grammar EventScriptLexer;
 BOOL:               'bool';
 BREAK:              'break';
 CONTINUE:           'continue';
-DURATION:           'duration';
 DATETIME:           'datetime';
+DURATION:           'duration';
 ELSE:               'else';
 FLOAT:              'float';
 FOR:                'for';
@@ -90,6 +90,7 @@ ARROW:              '->';
 
 
 // Whitespace and comments
+NL:                 [\r\n]+;
 WS:                 [ \t\r\n\u000C]+ -> channel(HIDDEN);
 COMMENT:            '/*' .*? '*/'    -> channel(HIDDEN);
 LINE_COMMENT:       '//' ~[\r\n]*    -> channel(HIDDEN);
