@@ -7,14 +7,20 @@ script
     ;
 
 statement
-    : variableDeclaration NL
-    | variableDefinition NL
+    : variableDeclaration eos
+    | variableDefinition eos
     | IF '(' expression ')' blockOrStatement (ELSE blockOrStatement)?
     | FOR '(' forInit? ';' expression? ';' forUpdate=expressionList? ')' blockOrStatement
-    | RETURN expression? NL
-    | BREAK NL
-    | CONTINUE NL
-    | statementExpression=expression NL
+    | RETURN expression? eos
+    | BREAK eos
+    | CONTINUE eos
+    | eos
+    | statementExpression=expression eos
+    ;
+
+eos
+    : NL
+    | ';' NL?
     ;
 
 variableDeclaration
@@ -32,6 +38,7 @@ forInit
 
 expression
     : literal                                                   #literalExp
+    | IDENTIFIER                                                #identifierExp
     | expression bop='.' ( IDENTIFIER | functionCall)           #childExp
     | functionCall                                              #functionExp
     | expression postfix=('++' | '--')                          #postfixExp
@@ -93,13 +100,10 @@ returnType
     ;
 
 block
-    : '{' statement* '}' NL
+    : '{' NL? statement* '}' NL?
     ;
 
 blockOrStatement
     : block
     | statement
     ;
-
-
-

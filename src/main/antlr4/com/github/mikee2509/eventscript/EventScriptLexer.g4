@@ -91,7 +91,7 @@ ARROW:              '->';
 
 // Whitespace and comments
 NL:                 [\r\n]+;
-WS:                 [ \t\r\n\u000C]+ -> channel(HIDDEN);
+WS:                 [ \t\u000C]+     -> channel(HIDDEN);
 COMMENT:            '/*' .*? '*/'    -> channel(HIDDEN);
 LINE_COMMENT:       '//' ~[\r\n]*    -> channel(HIDDEN);
 
