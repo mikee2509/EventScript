@@ -11,7 +11,7 @@ statement
     | variableDefinition eos
     | IF '(' expression ')' blockOrStatement (ELSE blockOrStatement)?
     | FOR '(' forInit? ';' expression? ';' forUpdate=expressionList? ')' blockOrStatement
-    | RETURN expression? eos
+    | RETURN expressionList? eos
     | BREAK eos
     | CONTINUE eos
     | eos
@@ -41,6 +41,7 @@ expression
     | IDENTIFIER                                                #identifierExp
     | expression bop='.' ( IDENTIFIER | functionCall)           #childExp
     | functionCall                                              #functionExp
+    | builtInFunctionCall                                       #builtInFuncExp
     | expression postfix=('++' | '--')                          #postfixExp
     | prefix=('+'|'-'|'++'|'--') expression                     #unaryExp
     | prefix='!' expression                                     #negationExp
@@ -55,6 +56,8 @@ expression
 
 literal
     : numberLiteral
+    | datetimeLiteral
+    | durationLiteral
     | STRING_LITERAL
     | BOOL_LITERAL
     ;
@@ -64,8 +67,24 @@ numberLiteral
     | FLOAT_LITERAL
     ;
 
+datetimeLiteral
+    : DATETIME parExpressionList
+    ;
+
+durationLiteral
+    : DURATION parExpressionList
+    ;
+
 functionCall
-    : IDENTIFIER '(' expressionList? ')'
+    : IDENTIFIER parExpressionList
+    ;
+
+builtInFunctionCall
+    : builtInFunction parExpressionList
+    ;
+
+parExpressionList
+    : '(' expressionList? ')'
     ;
 
 expressionList
@@ -80,6 +99,28 @@ type
     | FUNC
     | INT
     | STRING
+    ;
+
+builtInFunction
+    : RING
+    | SPEAK
+    | VIBRATE
+    | NOTIFY
+    | CALL
+    | LAUNCH
+    | ADD_TO_CALENDAR
+    | SET_RINGER_VOLUME
+    | SET_MEDIA_VOLUME
+    | SET_ALARM_CLOCK
+    | SET_WIFI
+    | SET_FLASHLIGHT
+    | SET_BRIGHTNESS
+    | ON_INTERVAL
+    | ON_TIME
+    | ON_LOCATION
+    | ON_MESSAGE
+    | ON_WIFI_ENABLED
+    | ON_WIFI_DISABLED
     ;
 
 function
