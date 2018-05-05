@@ -4,7 +4,8 @@ import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
-import com.github.mikee2509.eventscript.parser.exception.ArithmeticException;
+import com.github.mikee2509.eventscript.parser.exception.Operation;
+import com.github.mikee2509.eventscript.parser.exception.OperationException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,10 @@ import java.util.regex.Matcher;
 @Service
 public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
     private LiteralArithmetic la;
+
+    private interface LiteralOperation {
+        Literal execute();
+    }
 
     @Override
     public Literal visitDecimalLiteral(EventScriptParser.DecimalLiteralContext ctx) {
@@ -65,27 +70,14 @@ public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
             if (ctx.bop.getType() == EventScriptLexer.ADD) {
                 return new Literal<>(left.getValue().toString() + right.getValue().toString());
             } else {
-                throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.ADDITIVE);
+                throw new OperationException(ctx.start, left, right, Operation.ADDITIVE);
             }
         }
 
-        if (left.isFloatLiteral()) {
-            if (right.isFloatLiteral() || right.isDecimalLiteral()) {
-                return la.floatAdditiveOperation(left, right, ctx.bop);
-            } else {
-                throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.ADDITIVE);
-            }
-        } else if (left.isDecimalLiteral()) {
-            if (right.isDecimalLiteral()) {
-                return la.decimalAdditiveOperation(left, right, ctx.bop);
-            } else if (right.isFloatLiteral()) {
-                return la.floatAdditiveOperation(left, right, ctx.bop);
-            } else {
-                throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.ADDITIVE);
-            }
-        }
-
-        throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.ADDITIVE);
+        return applyOperation(left, right,
+            () -> la.decimalAdditiveOperation(left, right, ctx.bop),
+            () -> la.floatAdditiveOperation(left, right, ctx.bop),
+            new OperationException(ctx.start, left, right, Operation.ADDITIVE));
     }
 
     @Override
@@ -93,19 +85,27 @@ public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal left = visitChildren(ctx.expression(0));
         Literal right = visitChildren(ctx.expression(1));
 
+        return applyOperation(left, right,
+            () -> la.decimalMultiplicativeOperation(left, right, ctx.bop),
+            () -> la.floatMultiplicativeOperation(left, right, ctx.bop),
+            new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE));
+    }
+
+    private Literal applyOperation(Literal left, Literal right, LiteralOperation decimalOperation,
+                                   LiteralOperation floatOperation, OperationException exception) {
         if (left.isFloatLiteral()) {
             if (right.isFloatLiteral() || right.isDecimalLiteral()) {
-                return la.floatMultiplicativeOperation(left, right, ctx.bop);
+                return floatOperation.execute();
             }
         } else if (left.isDecimalLiteral()) {
             if (right.isDecimalLiteral()) {
-                return la.decimalMultiplicativeOperation(left, right, ctx.bop);
+                return decimalOperation.execute();
             } else if (right.isFloatLiteral()) {
-                return la.floatMultiplicativeOperation(left, right, ctx.bop);
+                return floatOperation.execute();
             }
         }
 
-        throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.MULTIPLICATIVE);
+        throw exception;
     }
 
     @Override
@@ -131,7 +131,7 @@ public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
                     () -> new Literal<>(-(Float) expression.getValue()));
         }
 
-        throw new ArithmeticException(ctx.start, expression, ArithmeticException.Operation.UNARY);
+        throw new OperationException(ctx.start, expression, Operation.UNARY);
     }
 
     private Literal applyOperation(EventScriptParser.UnaryExpContext ctx, Literal expression,
@@ -141,11 +141,60 @@ public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
         } else if (expression.isFloatLiteral()) {
             return floatOperation.execute();
         } else {
-            throw new ArithmeticException(ctx.start, expression, ArithmeticException.Operation.UNARY);
+            throw new OperationException(ctx.start, expression, Operation.UNARY);
         }
     }
 
-    interface LiteralOperation {
-        Literal execute();
+    @Override
+    public Literal visitNegationExp(EventScriptParser.NegationExpContext ctx) {
+        Literal expression = visitChildren(ctx.expression());
+
+        if (expression.isBoolLiteral()) {
+            return new Literal<>(!(Boolean) expression.getValue());
+        } else {
+            throw new OperationException(ctx.start, expression, Operation.NEGATION);
+        }
+    }
+//
+//    @Override
+//    public Literal visitEqualityExp(EventScriptParser.EqualityExpContext ctx) {
+//        Literal left = visitChildren(ctx.expression(0));
+//        Literal right = visitChildren(ctx.expression(1));
+//
+//        if (left.isBoolLiteral() && right.isBoolLiteral()) {
+//            switch (ctx.bop.getType()) {
+//                case EventScriptLexer.EQUAL:
+//                    return new Literal<>(left.getValue().equals(right.getValue()));
+//                case EventScriptLexer.NOTEQUAL:
+//                    return new Literal<>(!left.getValue().equals(right.getValue()));
+//            }
+//        }
+//
+//        throw OperationException.bothOperandsMustBeBool(ctx.start);
+//    }
+
+
+    @Override
+    public Literal visitLogicalAndExp(EventScriptParser.LogicalAndExpContext ctx) {
+        Literal left = visitChildren(ctx.expression(0));
+        Literal right = visitChildren(ctx.expression(1));
+
+        if (left.isBoolLiteral() && right.isBoolLiteral()) {
+            return new Literal<>((Boolean) left.getValue() && (Boolean) right.getValue());
+        }
+
+        throw OperationException.bothOperandsMustBeBool(ctx.start);
+    }
+
+    @Override
+    public Literal visitLogicalOrExp(EventScriptParser.LogicalOrExpContext ctx) {
+        Literal left = visitChildren(ctx.expression(0));
+        Literal right = visitChildren(ctx.expression(1));
+
+        if (left.isBoolLiteral() && right.isBoolLiteral()) {
+            return new Literal<>((Boolean) left.getValue() || (Boolean) right.getValue());
+        }
+
+        throw OperationException.bothOperandsMustBeBool(ctx.start);
     }
 }

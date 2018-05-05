@@ -23,4 +23,8 @@ public class Literal<T> implements Expression {
     public boolean isDecimalLiteral() {
         return Type.fromJavaType(value.getClass()) == Type.INT;
     }
+
+    public boolean isBoolLiteral() {
+        return Type.fromJavaType(value.getClass()) == Type.BOOL;
+    }
 }

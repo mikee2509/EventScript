@@ -42,7 +42,6 @@ expression
     | expression bop='.' ( IDENTIFIER | functionCall)           #childExp
     | functionCall                                              #functionExp
     | builtInFunctionCall                                       #builtInFuncExp
-    | expression postfix=('++' | '--')                          #postfixExp
     | prefix=('+'|'-'|'++'|'--') expression                     #unaryExp
     | prefix='!' expression                                     #negationExp
     | expression bop=('*'|'/'|'%') expression                   #multiplicativeExp

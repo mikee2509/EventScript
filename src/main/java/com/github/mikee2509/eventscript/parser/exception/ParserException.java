@@ -6,7 +6,7 @@ import java.text.MessageFormat;
 
 class ParserException extends RuntimeException {
 
-    ParserException(Token start, String message) {
-        super(MessageFormat.format("line {0}:{1} {2}", start.getLine(), start.getCharPositionInLine(), message));
+    ParserException(Token token, String message) {
+        super(MessageFormat.format("line {0}:{1} {2}", token.getLine(), token.getCharPositionInLine(), message));
     }
 }

@@ -3,7 +3,7 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
-import com.github.mikee2509.eventscript.parser.exception.ArithmeticException;
+import com.github.mikee2509.eventscript.parser.exception.OperationException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import org.junit.Before;
 import org.junit.Test;
@@ -147,7 +147,7 @@ public class LiteralVisitorTest {
         assertThat(literal.isStringLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo("2.3 says hello");
 
-        assertThatExceptionOfType(ArithmeticException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("\"Hello \" - \"World!\"");
         });
     }
@@ -193,9 +193,49 @@ public class LiteralVisitorTest {
 
     @Test
     public void unaryOperationsExceptions() {
-        assertThatExceptionOfType(ArithmeticException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("+\"2.5\"");
         });
     }
 
+    @Test
+    public void negationOperation() {
+        Literal literal = expression("!true");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("!0");
+        });
+    }
+
+    @Test
+    public void logicalAndOperation() {
+        Literal literal = expression("true && false");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("true && 1");
+        });
+    }
+
+
+    @Test
+    public void logicalOrOperation() {
+        Literal literal = expression("false || true");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("true || 1");
+        });
+    }
+
+//    @Test
+//    public void equalityOperation() {
+//        Literal literal = expression("2 == 2");
+//        assertThat(literal.isBoolLiteral()).isTrue();
+//        assertThat(literal.getValue()).isEqualTo(false);
+//    }
 }
