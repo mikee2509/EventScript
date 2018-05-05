@@ -55,24 +55,12 @@ expression
     ;
 
 literal
-    : numberLiteral
-    | datetimeLiteral
-    | durationLiteral
-    | STRING_LITERAL
-    | BOOL_LITERAL
-    ;
-
-numberLiteral
-    : DECIMAL_LITERAL
-    | FLOAT_LITERAL
-    ;
-
-datetimeLiteral
-    : DATETIME parExpressionList
-    ;
-
-durationLiteral
-    : DURATION parExpressionList
+    : DECIMAL_LITERAL                      #decimalLiteral
+    | FLOAT_LITERAL                        #floatLiteral
+    | DATETIME parExpressionList           #datetimeLiteral
+    | DURATION parExpressionList           #durationLiteral
+    | STRING_LITERAL                       #stringLiteral
+    | BOOL_LITERAL                         #boolLiteral
     ;
 
 functionCall

@@ -1,8 +1,8 @@
 package com.github.mikee2509.eventscript;
 
-import com.github.mikee2509.eventscript.domain.Script;
+import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
-import com.github.mikee2509.eventscript.parser.visitor.ScriptVisitor;
+import com.github.mikee2509.eventscript.parser.visitor.LiteralVisitor;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
 import org.springframework.boot.CommandLineRunner;
@@ -58,13 +58,11 @@ public class EventScriptApplication {
     }
 
     @Bean
-    CommandLineRunner declarationTest(ScriptVisitor visitor) {
+    CommandLineRunner declarationTest(LiteralVisitor visitor) {
         return args -> {
             ParserCreator parserCreator = new ParserCreator();
-            EventScriptParser parser = parserCreator.fromString("var price : float\n");
-            EventScriptParser.ScriptContext scriptContext = parser.script();
-            Script script = visitor.visit(scriptContext);
-            System.out.println(script);
+            EventScriptParser parser = parserCreator.fromString("2 % 3.0");
+            Literal visit = visitor.visit(parser.expression());
         };
     }
 }
