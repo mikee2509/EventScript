@@ -3,11 +3,13 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
+import com.github.mikee2509.eventscript.parser.exception.ArithmeticException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class LiteralVisitorTest {
     private ParserCreator parserCreator;
@@ -18,7 +20,6 @@ public class LiteralVisitorTest {
         parserCreator = new ParserCreator();
         visitor = new LiteralVisitor(new LiteralArithmetic());
     }
-
 
     private Literal expression(String input) {
         EventScriptParser parser = parserCreator.fromString(input);
@@ -69,7 +70,6 @@ public class LiteralVisitorTest {
         assertThat(literal.isFloatLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(-89.5f);
     }
-
 
 
     @Test
@@ -130,6 +130,72 @@ public class LiteralVisitorTest {
         literal = expression("4 % 3.0");
         assertThat(literal.isFloatLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(1.0f);
+    }
+
+
+    @Test
+    public void stringAdditiveOperations() {
+        Literal literal = expression("\"Hello \" + \"World!\"");
+        assertThat(literal.isStringLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo("Hello World!");
+
+        literal = expression("\"Hello integer \" + 2");
+        assertThat(literal.isStringLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo("Hello integer 2");
+
+        literal = expression("2.3 + \" says hello\"");
+        assertThat(literal.isStringLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo("2.3 says hello");
+
+        assertThatExceptionOfType(ArithmeticException.class).isThrownBy(() -> {
+            expression("\"Hello \" - \"World!\"");
+        });
+    }
+
+
+    @Test
+    public void integerUnaryOperations() {
+        Literal literal = expression("-2");
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(-2);
+
+        literal = expression("+2");
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(2);
+
+        literal = expression("--2");
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(1);
+
+        literal = expression("++2");
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(3);
+    }
+
+    @Test
+    public void floatUnaryOperations() {
+        Literal literal = expression("-2.5");
+        assertThat(literal.isFloatLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(-2.5f);
+
+        literal = expression("+2.5");
+        assertThat(literal.isFloatLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(2.5f);
+
+        literal = expression("--2.5");
+        assertThat(literal.isFloatLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(1.5f);
+
+        literal = expression("++2.5");
+        assertThat(literal.isFloatLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(3.5f);
+    }
+
+    @Test
+    public void unaryOperationsExceptions() {
+        assertThatExceptionOfType(ArithmeticException.class).isThrownBy(() -> {
+            expression("+\"2.5\"");
+        });
     }
 
 }

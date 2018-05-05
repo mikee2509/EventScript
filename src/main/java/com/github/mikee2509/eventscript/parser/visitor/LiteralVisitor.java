@@ -107,4 +107,45 @@ public class LiteralVisitor extends EventScriptParserBaseVisitor<Literal> {
 
         throw new ArithmeticException(ctx.start, left, right, ArithmeticException.Operation.MULTIPLICATIVE);
     }
+
+    @Override
+    public Literal visitUnaryExp(EventScriptParser.UnaryExpContext ctx) {
+        Literal expression = visitChildren(ctx.expression());
+
+        switch (ctx.prefix.getType()) {
+            case EventScriptLexer.INC:
+                return applyOperation(ctx, expression,
+                    () -> new Literal<>((Integer) expression.getValue() + 1),
+                    () -> new Literal<>((Float) expression.getValue() + 1.0f));
+            case EventScriptLexer.DEC:
+                return applyOperation(ctx, expression,
+                    () -> new Literal<>((Integer) expression.getValue() - 1),
+                    () -> new Literal<>((Float) expression.getValue() - 1.0f));
+            case EventScriptLexer.ADD:
+                return applyOperation(ctx, expression,
+                    () -> expression,
+                    () -> expression);
+            case EventScriptLexer.SUB:
+                return applyOperation(ctx, expression,
+                    () -> new Literal<>(-(Integer) expression.getValue()),
+                    () -> new Literal<>(-(Float) expression.getValue()));
+        }
+
+        throw new ArithmeticException(ctx.start, expression, ArithmeticException.Operation.UNARY);
+    }
+
+    private Literal applyOperation(EventScriptParser.UnaryExpContext ctx, Literal expression,
+                                   LiteralOperation decimalOperation, LiteralOperation floatOperation) {
+        if (expression.isDecimalLiteral()) {
+            return decimalOperation.execute();
+        } else if (expression.isFloatLiteral()) {
+            return floatOperation.execute();
+        } else {
+            throw new ArithmeticException(ctx.start, expression, ArithmeticException.Operation.UNARY);
+        }
+    }
+
+    interface LiteralOperation {
+        Literal execute();
+    }
 }

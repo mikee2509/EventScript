@@ -13,9 +13,14 @@ public class ArithmeticException extends ParserException {
             operation.name, leftOperand.getLiteralType().getName(), rightOperand.getLiteralType().getName()));
     }
 
+    public ArithmeticException(Token start, Literal expression, Operation operation) {
+        super(start, MessageFormat.format("Unsupported {0} operation on {1}", operation.name,
+            expression.getLiteralType().getName()));
+    }
+
     @AllArgsConstructor
     public enum Operation {
-        ADDITIVE("additive"), MULTIPLICATIVE("multiplicative");
+        ADDITIVE("additive"), MULTIPLICATIVE("multiplicative"), UNARY("unary");
 
         private String name;
     }
