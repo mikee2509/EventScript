@@ -11,9 +11,10 @@ public enum Type {
     DATETIME    (LocalDateTime.class),
     DURATION    (Duration.class),
     FLOAT       (Float.class),
-    FUNC        (Object.class), //TODO
+    FUNC        (Function.class),
     INT         (Integer.class),
-    STRING      (String.class);
+    STRING      (String.class),
+    VOID        (Void.class);
 
     private Class<?> javaType;
 

@@ -4,16 +4,17 @@ import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.Script;
 import com.github.mikee2509.eventscript.domain.Statement;
+import com.github.mikee2509.eventscript.domain.scope.Scope;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 @AllArgsConstructor
 public class ScriptVisitor extends EventScriptParserBaseVisitor<Script> {
+    private Scope globalScope;
     private StatementVisitor statementVisitor;
+    private FunctionVisitor functionVisitor;
 
     @Override
     public Script visitScript(EventScriptParser.ScriptContext ctx) {

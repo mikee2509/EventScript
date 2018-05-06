@@ -1,11 +1,14 @@
 package com.github.mikee2509.eventscript.domain.expression;
 
+import com.github.mikee2509.eventscript.domain.scope.Declarable;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class Literal<T> implements Expression {
+@EqualsAndHashCode
+public class Literal<T> implements Declarable {
     T value;
 
     public Type getLiteralType() {

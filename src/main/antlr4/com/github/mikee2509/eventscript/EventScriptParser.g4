@@ -7,15 +7,15 @@ script
     ;
 
 statement
-    : variableDeclaration eos
-    | variableDefinition eos
-    | IF '(' expression ')' blockOrStatement (ELSE blockOrStatement)?
-    | FOR '(' forInit? ';' expression? ';' forUpdate=expressionList? ')' blockOrStatement
-    | RETURN expressionList? eos
-    | BREAK eos
-    | CONTINUE eos
-    | eos
-    | statementExpression=expression eos
+    : variableDeclaration eos                                                              #varDeclarationStmt
+    | variableDefinition eos                                                               #varDefinitionStmt
+    | IF '(' expression ')' blockOrStatement (ELSE blockOrStatement)?                      #ifStmt
+    | FOR '(' forInit? ';' expression? ';' forUpdate=expressionList? ')' blockOrStatement  #forStmt
+    | RETURN expressionList? eos                                                           #returnStmt
+    | BREAK eos                                                                            #breakStmt
+    | CONTINUE eos                                                                         #continueStmt
+    | eos                                                                                  #noOpStmt
+    | statementExpression=expression eos                                                   #expressionStmt
     ;
 
 eos
@@ -86,6 +86,7 @@ type
     | FUNC
     | INT
     | STRING
+    | VOID
     ;
 
 builtInFunction

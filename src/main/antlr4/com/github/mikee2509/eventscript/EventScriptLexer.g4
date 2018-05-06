@@ -15,6 +15,7 @@ INT:                'int';
 RETURN:             'return';
 STRING:             'string';
 VAR:                'var';
+VOID:               'void';
 WHILE:              'while';
 
 

@@ -11,14 +11,14 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class LiteralVisitorTest {
+public class ExpressionVisitorTest {
     private ParserCreator parserCreator;
-    private LiteralVisitor visitor;
+    private ExpressionVisitor visitor;
 
     @Before
     public void setUp() throws Exception {
         parserCreator = new ParserCreator();
-        visitor = new LiteralVisitor(new LiteralArithmetic());
+        visitor = new ExpressionVisitor(new LiteralArithmetic());
     }
 
     private Literal expression(String input) {
