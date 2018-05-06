@@ -25,36 +25,44 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Statement> {
         Type type = ctx.type().accept(typeVisitor);
         switch (type) {
             case BOOL:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(false));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(false));
                 break;
             case STRING:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(""));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(""));
                 break;
             case INT:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0));
                 break;
             case FLOAT:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0.0f));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0.0f));
                 break;
             case FUNC:
                 throw ScopeException.cannotBeDefined(ctx.start, type);
             case VOID:
                 throw ScopeException.cannotBeDefined(ctx.start, type);
             case DATETIME:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(LocalDateTime.now()));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(LocalDateTime.now()));
                 break;
             case DURATION:
-                declareVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(Duration.ZERO));
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(Duration.ZERO));
                 break;
         }
         return null;
     }
 
-    private void declareVariable(Token position, String identifier, Declarable value) {
+    private void defineVariable(Token position, String identifier, Declarable value) {
         if (!scope.defineSymbol(identifier, value)) {
             throw ScopeException.alreadyDefined(position);
         }
     }
 
-
+    @Override
+    public Statement visitVariableDefinition(EventScriptParser.VariableDefinitionContext ctx) {
+        Literal expression = ctx.expression().accept(expressionVisitor);
+        if (expression.isVoidLiteral()) {
+            throw ScopeException.cannotBeDefined(ctx.start, expression.getLiteralType());
+        }
+        defineVariable(ctx.start, ctx.IDENTIFIER().getText(), expression);
+        return null;
+    }
 }

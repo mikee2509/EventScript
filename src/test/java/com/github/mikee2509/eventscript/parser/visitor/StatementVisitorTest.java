@@ -50,5 +50,35 @@ public class StatementVisitorTest {
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
             statement("var myFunc : func;", scope);
         });
+
+        assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
+            statement("var myInt : string;", scope);
+        });
+
+        // TODO test declaring variable of duration and datetime type
+    }
+
+
+    @Test
+    public void visitVariableDefinition() {
+        Scope scope = new Scope();
+        statement("var myBool = true;", scope);
+        assertThat(scope.lookupSymbol("myBool")).isEqualTo(new Literal<>(true));
+
+        statement("var myInt = 111;", scope);
+        assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(111));
+
+        statement("var myFloat = 10.0;", scope);
+        assertThat(scope.lookupSymbol("myFloat")).isEqualTo(new Literal<>(10.0f));
+
+        statement("var myString = \"Hello\";", scope);
+        assertThat(scope.lookupSymbol("myString")).isEqualTo(new Literal<>("Hello"));
+
+        assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
+            statement("var myInt = \"Test\";", scope);
+        });
+
+        // TODO test creating a variable from function returning void
+        // TODO test creating a variable from duration and datetime literals
     }
 }

@@ -8,38 +8,53 @@ import org.springframework.stereotype.Service;
 @Service
 public class LiteralArithmetic {
     public Literal<Integer> decimalAdditiveOperation(Literal<Integer> left, Literal<Integer> right, Token bop) {
-        if (bop.getType() == EventScriptLexer.ADD) {
-            return new Literal<>(left.getValue() + right.getValue());
-        } else {
-            return new Literal<>(left.getValue() - right.getValue());
+        switch (bop.getType()) {
+            case EventScriptLexer.ADD:
+                return new Literal<>(left.getValue() + right.getValue());
+            default:
+                return new Literal<>(left.getValue() - right.getValue());
         }
     }
 
     public Literal<Float> floatAdditiveOperation(Literal<Number> left, Literal<Number> right, Token bop) {
-        if (bop.getType() == EventScriptLexer.ADD) {
-            return new Literal<>(left.getValue().floatValue() + right.getValue().floatValue());
-        } else {
-            return new Literal<>(left.getValue().floatValue() - right.getValue().floatValue());
+        switch (bop.getType()) {
+            case EventScriptLexer.ADD:
+                return new Literal<>(left.getValue().floatValue() + right.getValue().floatValue());
+            default:
+                return new Literal<>(left.getValue().floatValue() - right.getValue().floatValue());
         }
     }
 
     public Literal<Integer> decimalMultiplicativeOperation(Literal<Integer> left, Literal<Integer> right, Token bop) {
-        if (bop.getType() == EventScriptLexer.MUL) {
-            return new Literal<>(left.getValue() * right.getValue());
-        } else if (bop.getType() == EventScriptLexer.DIV) {
-            return new Literal<>(left.getValue() / right.getValue());
-        } else {
-            return new Literal<>(left.getValue() % right.getValue());
+        switch (bop.getType()) {
+            case EventScriptLexer.MUL:
+                return new Literal<>(left.getValue() * right.getValue());
+            case EventScriptLexer.DIV:
+                return new Literal<>(left.getValue() / right.getValue());
+            default:
+                return new Literal<>(left.getValue() % right.getValue());
         }
     }
 
     public Literal<Float> floatMultiplicativeOperation(Literal<Number> left, Literal<Number> right, Token bop) {
-        if (bop.getType() == EventScriptLexer.MUL) {
-            return new Literal<>(left.getValue().floatValue() * right.getValue().floatValue());
-        } else if (bop.getType() == EventScriptLexer.DIV) {
-            return new Literal<>(left.getValue().floatValue() / right.getValue().floatValue());
-        } else {
-            return new Literal<>(left.getValue().floatValue() % right.getValue().floatValue());
+        switch (bop.getType()) {
+            case EventScriptLexer.MUL:
+                return new Literal<>(left.getValue().floatValue() * right.getValue().floatValue());
+            case EventScriptLexer.DIV:
+                return new Literal<>(left.getValue().floatValue() / right.getValue().floatValue());
+            default:
+                return new Literal<>(left.getValue().floatValue() % right.getValue().floatValue());
+        }
+    }
+
+    public Literal<Boolean> floatEqualityOperation(Literal<Number> left, Literal<Number> right, Token bop) {
+        Float floatLeft = left.getValue().floatValue();
+        Float floatRight = right.getValue().floatValue();
+        switch (bop.getType()) {
+            case EventScriptLexer.EQUAL:
+                return new Literal<>(floatLeft.equals(floatRight));
+            default:
+                return new Literal<>(!floatLeft.equals(floatRight));
         }
     }
 }

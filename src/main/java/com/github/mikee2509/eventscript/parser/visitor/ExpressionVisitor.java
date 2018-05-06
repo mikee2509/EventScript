@@ -74,10 +74,15 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             }
         }
 
-        return applyOperation(left, right,
+        Literal result = applyOperation(left, right,
             () -> la.decimalAdditiveOperation(left, right, ctx.bop),
-            () -> la.floatAdditiveOperation(left, right, ctx.bop),
-            new OperationException(ctx.start, left, right, Operation.ADDITIVE));
+            () -> la.floatAdditiveOperation(left, right, ctx.bop));
+
+        if (result != null) {
+            return result;
+        } else {
+            throw new OperationException(ctx.start, left, right, Operation.ADDITIVE);
+        }
     }
 
     @Override
@@ -85,14 +90,19 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal left = visitChildren(ctx.expression(0));
         Literal right = visitChildren(ctx.expression(1));
 
-        return applyOperation(left, right,
+        Literal result = applyOperation(left, right,
             () -> la.decimalMultiplicativeOperation(left, right, ctx.bop),
-            () -> la.floatMultiplicativeOperation(left, right, ctx.bop),
-            new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE));
+            () -> la.floatMultiplicativeOperation(left, right, ctx.bop));
+
+        if (result != null) {
+            return result;
+        } else {
+            throw new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE);
+        }
     }
 
     private Literal applyOperation(Literal left, Literal right, LiteralOperation decimalOperation,
-                                   LiteralOperation floatOperation, OperationException exception) {
+                                   LiteralOperation floatOperation) {
         if (left.isFloatLiteral()) {
             if (right.isFloatLiteral() || right.isDecimalLiteral()) {
                 return floatOperation.execute();
@@ -104,8 +114,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
                 return floatOperation.execute();
             }
         }
-
-        throw exception;
+        return null;
     }
 
     @Override
@@ -155,24 +164,6 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             throw new OperationException(ctx.start, expression, Operation.NEGATION);
         }
     }
-//
-//    @Override
-//    public Literal visitEqualityExp(EventScriptParser.EqualityExpContext ctx) {
-//        Literal left = visitChildren(ctx.expression(0));
-//        Literal right = visitChildren(ctx.expression(1));
-//
-//        if (left.isBoolLiteral() && right.isBoolLiteral()) {
-//            switch (ctx.bop.getType()) {
-//                case EventScriptLexer.EQUAL:
-//                    return new Literal<>(left.getValue().equals(right.getValue()));
-//                case EventScriptLexer.NOTEQUAL:
-//                    return new Literal<>(!left.getValue().equals(right.getValue()));
-//            }
-//        }
-//
-//        throw OperationException.bothOperandsMustBeBool(ctx.start);
-//    }
-
 
     @Override
     public Literal visitLogicalAndExp(EventScriptParser.LogicalAndExpContext ctx) {
@@ -196,5 +187,25 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         }
 
         throw OperationException.bothOperandsMustBeBool(ctx.start);
+    }
+
+    @Override
+    public Literal visitEqualityExp(EventScriptParser.EqualityExpContext ctx) {
+        Literal left = visitChildren(ctx.expression(0));
+        Literal right = visitChildren(ctx.expression(1));
+
+        Literal result = applyOperation(left, right,
+            () -> null,
+            () -> la.floatEqualityOperation(left, right, ctx.bop));
+
+        if (result != null) return result;
+
+        switch (ctx.bop.getType()) {
+            case EventScriptLexer.EQUAL:
+                return new Literal<>(left.getValue().equals(right.getValue()));
+            case EventScriptLexer.NOTEQUAL:
+                return new Literal<>(!left.getValue().equals(right.getValue()));
+        }
+        throw new RuntimeException(); // this should never happen
     }
 }

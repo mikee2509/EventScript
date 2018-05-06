@@ -30,4 +30,16 @@ public class Literal<T> implements Declarable {
     public boolean isBoolLiteral() {
         return Type.fromJavaType(value.getClass()) == Type.BOOL;
     }
+
+    public boolean isVoidLiteral() {
+        return Type.fromJavaType(value.getClass()) == Type.VOID;
+    }
+
+    @Override
+    public String toString() {
+        return "Literal{" +
+            "value=" + value +
+            " type=" + value.getClass().getCanonicalName() +
+            '}';
+    }
 }

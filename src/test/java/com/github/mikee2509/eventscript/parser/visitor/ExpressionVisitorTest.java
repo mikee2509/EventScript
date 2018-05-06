@@ -150,6 +150,8 @@ public class ExpressionVisitorTest {
         assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("\"Hello \" - \"World!\"");
         });
+
+        // TODO test additive operation between string and time types
     }
 
 
@@ -232,10 +234,26 @@ public class ExpressionVisitorTest {
         });
     }
 
-//    @Test
-//    public void equalityOperation() {
-//        Literal literal = expression("2 == 2");
-//        assertThat(literal.isBoolLiteral()).isTrue();
-//        assertThat(literal.getValue()).isEqualTo(false);
-//    }
+    @Test
+    public void equalityOperation() {
+        Literal literal = expression("2 == 2");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("2.0 == 2.1");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("\"aaa\" == \"aaa\"");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("true == false");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("2 == 2.0");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+    }
 }
