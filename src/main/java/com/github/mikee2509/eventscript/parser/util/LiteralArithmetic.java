@@ -57,4 +57,32 @@ public class LiteralArithmetic {
                 return new Literal<>(!floatLeft.equals(floatRight));
         }
     }
+
+    public Literal<Boolean> decimalRelationalOperation(Literal<Integer> left, Literal<Integer> right, Token bop) {
+        int intLeft = left.getValue();
+        int intRight = right.getValue();
+        return relationalOperation(bop, intLeft < intRight, intLeft > intRight, intLeft <= intRight, intLeft >=
+            intRight);
+    }
+
+    public Literal<Boolean> floatRelationalOperation(Literal<Number> left, Literal<Number> right, Token bop) {
+        float floatLeft = left.getValue().floatValue();
+        float floatRight = right.getValue().floatValue();
+        return relationalOperation(bop, floatLeft < floatRight, floatLeft > floatRight, floatLeft <= floatRight,
+            floatLeft >= floatRight);
+    }
+
+    private Literal<Boolean> relationalOperation(Token bop, boolean lt, boolean gt, boolean le, boolean ge) {
+        switch (bop.getType()) {
+            case EventScriptLexer.LT:
+                return new Literal<>(lt);
+            case EventScriptLexer.GT:
+                return new Literal<>(gt);
+            case EventScriptLexer.LE:
+                return new Literal<>(le);
+            default:
+                return new Literal<>(ge);
+
+        }
+    }
 }

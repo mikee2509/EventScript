@@ -12,7 +12,7 @@ public class OperationException extends ParserException {
     }
 
     public OperationException(Token token, Literal leftOperand, Literal rightOperand, Operation operation) {
-        super(token, MessageFormat.format("Unsupported {0} arithmetic operation between {1} and {2}",
+        super(token, MessageFormat.format("Unsupported {0} operation between {1} and {2}",
             operation.getName(), leftOperand.getLiteralType().getName(), rightOperand.getLiteralType().getName()));
     }
 

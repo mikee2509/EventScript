@@ -94,11 +94,8 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             () -> la.decimalMultiplicativeOperation(left, right, ctx.bop),
             () -> la.floatMultiplicativeOperation(left, right, ctx.bop));
 
-        if (result != null) {
-            return result;
-        } else {
-            throw new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE);
-        }
+        if (result != null) return result;
+        throw new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE);
     }
 
     private Literal applyOperation(Literal left, Literal right, LiteralOperation decimalOperation,
@@ -203,9 +200,24 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         switch (ctx.bop.getType()) {
             case EventScriptLexer.EQUAL:
                 return new Literal<>(left.getValue().equals(right.getValue()));
-            case EventScriptLexer.NOTEQUAL:
+            default:
                 return new Literal<>(!left.getValue().equals(right.getValue()));
         }
-        throw new RuntimeException(); // this should never happen
+    }
+
+    @Override
+    public Literal visitRelationalExp(EventScriptParser.RelationalExpContext ctx) {
+        Literal left = visitChildren(ctx.expression(0));
+        Literal right = visitChildren(ctx.expression(1));
+
+        Literal result = applyOperation(left, right,
+            () -> la.decimalRelationalOperation(left, right, ctx.bop),
+            () -> la.floatRelationalOperation(left, right, ctx.bop));
+
+        if (result != null) return result;
+
+        // TODO comparison between duration and datetime
+
+        throw new OperationException(ctx.start, left, right, Operation.RELATIONAL);
     }
 }

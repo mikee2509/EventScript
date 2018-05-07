@@ -255,5 +255,52 @@ public class ExpressionVisitorTest {
         literal = expression("2 == 2.0");
         assertThat(literal.isBoolLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(true);
+
+
+        literal = expression("2 != 2");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("2.0 != 2.1");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("\"aaa\" != \"aaa\"");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("true != false");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("2 != 2.0");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+    }
+
+
+    @Test
+    public void relationalOperation() {
+        Literal literal = expression("2 < 3");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("3 <= 3.0");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("3.0 > 3");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("4.0 > 3.9");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("\"1\" < \"2\"");
+        });
+
+        // TODO test relational operations between time types
     }
 }
