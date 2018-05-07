@@ -226,9 +226,24 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     @Override
     public Literal visitIdentifierExp(EventScriptParser.IdentifierExpContext ctx) {
         Declarable declarable = scope.lookupSymbol(ctx.IDENTIFIER().getText());
-        if (declarable == null || !(declarable instanceof Literal)) {
+        if (!(declarable instanceof Literal)) {
             throw ScopeException.undefinedVariable(ctx.start, ctx.IDENTIFIER().getText());
         }
         return (Literal) declarable;
+    }
+
+    @Override
+    public Literal visitAssignmentExp(EventScriptParser.AssignmentExpContext ctx) {
+        if (!(ctx.expression(0) instanceof EventScriptParser.IdentifierExpContext)) {
+            throw OperationException.variableExpected(ctx.start);
+        }
+        EventScriptParser.IdentifierExpContext variable = (EventScriptParser.IdentifierExpContext) ctx.expression(0);
+        Literal currentValue = visitIdentifierExp(variable);
+        Literal newValue = ctx.expression(1).accept(this);
+        if (!newValue.isOfSameType(currentValue)) {
+            throw OperationException.differentTypeExpected(ctx.start, currentValue.getLiteralType());
+        }
+        scope.updateSymbol(variable.IDENTIFIER().getText(), newValue);
+        return newValue;
     }
 }

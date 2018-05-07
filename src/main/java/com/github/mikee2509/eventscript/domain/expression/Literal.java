@@ -15,6 +15,10 @@ public class Literal<T> implements Declarable {
         return Type.fromJavaType(value.getClass());
     }
 
+    public boolean isOfSameType(Literal other) {
+        return this.value.getClass() == other.value.getClass();
+    }
+
     public boolean isStringLiteral() {
         return Type.fromJavaType(value.getClass()) == Type.STRING;
     }

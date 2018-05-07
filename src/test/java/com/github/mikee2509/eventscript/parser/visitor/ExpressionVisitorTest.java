@@ -2,6 +2,7 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
+import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Scope;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.exception.OperationException;
@@ -319,7 +320,29 @@ public class ExpressionVisitorTest {
         assertThat(literal.getValue()).isEqualTo(123);
 
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
-            expression("myFloat");
+            expression("myFloat", scope);
         });
+    }
+
+    @Test
+    public void assignmentOperation() {
+        Scope scope = new Scope();
+        scope.defineSymbol("myInt", new Literal<>(100));
+        scope.defineSymbol("secondInt", new Literal<>(0));
+
+        Literal literal = expression("myInt = 200", scope);
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(200);
+        assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(200));
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("myInt = 1.0", scope);
+        }).withMessageContaining(Type.INT.getName());
+
+        literal = expression("secondInt = myInt = 300", scope);
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(300);
+        assertThat(scope.lookupSymbol("secondInt")).isEqualTo(new Literal<>(300));
+        assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(300));
     }
 }
