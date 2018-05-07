@@ -4,17 +4,19 @@ import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
+import com.github.mikee2509.eventscript.domain.scope.Declarable;
+import com.github.mikee2509.eventscript.domain.scope.Scope;
 import com.github.mikee2509.eventscript.parser.exception.Operation;
 import com.github.mikee2509.eventscript.parser.exception.OperationException;
+import com.github.mikee2509.eventscript.parser.exception.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
 
 @AllArgsConstructor
-@Service
 public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
+    private Scope scope;
     private LiteralArithmetic la;
 
     private interface LiteralOperation {
@@ -219,5 +221,14 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         // TODO comparison between duration and datetime
 
         throw new OperationException(ctx.start, left, right, Operation.RELATIONAL);
+    }
+
+    @Override
+    public Literal visitIdentifierExp(EventScriptParser.IdentifierExpContext ctx) {
+        Declarable declarable = scope.lookupSymbol(ctx.IDENTIFIER().getText());
+        if (declarable == null || !(declarable instanceof Literal)) {
+            throw ScopeException.undefinedVariable(ctx.start, ctx.IDENTIFIER().getText());
+        }
+        return (Literal) declarable;
     }
 }

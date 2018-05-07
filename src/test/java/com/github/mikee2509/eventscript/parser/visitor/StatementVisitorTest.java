@@ -21,7 +21,7 @@ public class StatementVisitorTest {
     }
 
     private Statement statement(String input, Scope scope) {
-        ExpressionVisitor expressionVisitor = new ExpressionVisitor(new LiteralArithmetic());
+        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scope, new LiteralArithmetic());
         TypeVisitor typeVisitor = new TypeVisitor();
         StatementVisitor statementVisitor = new StatementVisitor(scope, expressionVisitor, typeVisitor);
         EventScriptParser parser = parserCreator.fromString(input);

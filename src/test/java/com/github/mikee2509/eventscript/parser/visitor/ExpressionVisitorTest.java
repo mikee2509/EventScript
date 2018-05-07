@@ -2,8 +2,10 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
+import com.github.mikee2509.eventscript.domain.scope.Scope;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.exception.OperationException;
+import com.github.mikee2509.eventscript.parser.exception.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,16 +15,19 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ExpressionVisitorTest {
     private ParserCreator parserCreator;
-    private ExpressionVisitor visitor;
 
     @Before
     public void setUp() throws Exception {
         parserCreator = new ParserCreator();
-        visitor = new ExpressionVisitor(new LiteralArithmetic());
     }
 
     private Literal expression(String input) {
+        return expression(input, new Scope());
+    }
+
+    private Literal expression(String input, Scope scope) {
         EventScriptParser parser = parserCreator.fromString(input);
+        ExpressionVisitor visitor = new ExpressionVisitor(scope, new LiteralArithmetic());
         return visitor.visit(parser.expression());
     }
 
@@ -302,5 +307,19 @@ public class ExpressionVisitorTest {
         });
 
         // TODO test relational operations between time types
+    }
+
+    @Test
+    public void identifierOperation() {
+        Scope scope = new Scope();
+        scope.defineSymbol("myInt", new Literal<>(123));
+
+        Literal literal = expression("myInt", scope);
+        assertThat(literal.isDecimalLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(123);
+
+        assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
+            expression("myFloat");
+        });
     }
 }
