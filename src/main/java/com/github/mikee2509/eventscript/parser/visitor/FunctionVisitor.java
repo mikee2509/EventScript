@@ -1,7 +1,9 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
-import org.springframework.stereotype.Service;
+import com.github.mikee2509.eventscript.parser.util.ScopeManager;
+import lombok.AllArgsConstructor;
 
-@Service
+@AllArgsConstructor
 public class FunctionVisitor {
+    private ScopeManager scope;
 }

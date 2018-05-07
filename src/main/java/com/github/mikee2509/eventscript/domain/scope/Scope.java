@@ -18,6 +18,10 @@ public class Scope {
         return new Scope(this);
     }
 
+    public Scope getParentScope() {
+        return parentScope;
+    }
+
     public boolean defineSymbol(String identifier, Declarable value) {
         if (symbolTable.containsKey(identifier)) {
             return false;

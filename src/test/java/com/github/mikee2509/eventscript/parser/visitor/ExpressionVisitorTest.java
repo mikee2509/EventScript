@@ -3,11 +3,11 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
-import com.github.mikee2509.eventscript.domain.scope.Scope;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.exception.OperationException;
 import com.github.mikee2509.eventscript.parser.exception.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
+import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,12 +23,12 @@ public class ExpressionVisitorTest {
     }
 
     private Literal expression(String input) {
-        return expression(input, new Scope());
+        return expression(input, new ScopeManager());
     }
 
-    private Literal expression(String input, Scope scope) {
+    private Literal expression(String input, ScopeManager scopeManager) {
         EventScriptParser parser = parserCreator.fromString(input);
-        ExpressionVisitor visitor = new ExpressionVisitor(scope, new LiteralArithmetic());
+        ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, new LiteralArithmetic());
         return visitor.visit(parser.expression());
     }
 
@@ -312,7 +312,7 @@ public class ExpressionVisitorTest {
 
     @Test
     public void identifierOperation() {
-        Scope scope = new Scope();
+        ScopeManager scope = new ScopeManager();
         scope.defineSymbol("myInt", new Literal<>(123));
 
         Literal literal = expression("myInt", scope);
@@ -326,7 +326,7 @@ public class ExpressionVisitorTest {
 
     @Test
     public void assignmentOperation() {
-        Scope scope = new Scope();
+        ScopeManager scope = new ScopeManager();
         scope.defineSymbol("myInt", new Literal<>(100));
         scope.defineSymbol("secondInt", new Literal<>(0));
 

@@ -90,25 +90,25 @@ type
     ;
 
 builtInFunction
-    : RING
-    | SPEAK
-    | VIBRATE
-    | NOTIFY
-    | CALL
-    | LAUNCH
-    | ADD_TO_CALENDAR
-    | SET_RINGER_VOLUME
-    | SET_MEDIA_VOLUME
-    | SET_ALARM_CLOCK
-    | SET_WIFI
-    | SET_FLASHLIGHT
-    | SET_BRIGHTNESS
-    | ON_INTERVAL
-    | ON_TIME
-    | ON_LOCATION
-    | ON_MESSAGE
-    | ON_WIFI_ENABLED
-    | ON_WIFI_DISABLED
+    : RING                     #ringFunc
+    | SPEAK                    #speakFunc
+    | VIBRATE                  #vibrateFunc
+    | NOTIFY                   #notifyFunc
+    | CALL                     #callFunc
+    | LAUNCH                   #launchFunc
+    | ADD_TO_CALENDAR          #addToCalendarFunc
+    | SET_RINGER_VOLUME        #setRingerVolumeFunc
+    | SET_MEDIA_VOLUME         #setMediaVolumeFunc
+    | SET_ALARM_CLOCK          #setAlarmClockFunc
+    | SET_WIFI                 #setWifiFunc
+    | SET_FLASHLIGHT           #setFlashlightFunc
+    | SET_BRIGHTNESS           #setBrightnessFunc
+    | ON_INTERVAL              #onIntervalScheduleFunc
+    | ON_TIME                  #onTimeScheduleFunc
+    | ON_LOCATION              #onLocationScheduleFunc
+    | ON_MESSAGE               #onMessageScheduleFunc
+    | ON_WIFI_ENABLED          #onWifiEnabledScheduleFunc
+    | ON_WIFI_DISABLED         #onWifiDisabledScheduleFunc
     ;
 
 function

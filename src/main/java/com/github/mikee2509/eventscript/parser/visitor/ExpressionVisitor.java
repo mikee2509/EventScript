@@ -5,18 +5,18 @@ import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
-import com.github.mikee2509.eventscript.domain.scope.Scope;
 import com.github.mikee2509.eventscript.parser.exception.Operation;
 import com.github.mikee2509.eventscript.parser.exception.OperationException;
 import com.github.mikee2509.eventscript.parser.exception.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
+import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.AllArgsConstructor;
 
 import java.util.regex.Matcher;
 
 @AllArgsConstructor
 public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
-    private Scope scope;
+    private ScopeManager scope;
     private LiteralArithmetic la;
 
     private interface LiteralOperation {

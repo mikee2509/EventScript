@@ -10,13 +10,13 @@ public class ScopeException extends ParserException {
         super(token, message);
     }
 
-    public static ScopeException alreadyDefined(Token token) {
-        return new ScopeException(token, MessageFormat.format("''{0}'' is already defined in this scope",
-            token.getText()));
+    public static ScopeException alreadyDefined(Token token, String identifier) {
+        return new ScopeException(token, MessageFormat.format("''{0}'' is already defined in this scope", identifier));
     }
 
     public static ScopeException undefinedVariable(Token token, String identifier) {
-        return new ScopeException(token, MessageFormat.format("Variable ''{0}'' is not defined in this scope", identifier));
+        return new ScopeException(token, MessageFormat.format("Variable ''{0}'' is not defined in this scope",
+            identifier));
     }
 
     public static ScopeException cannotBeDefined(Token token, Type type) {
