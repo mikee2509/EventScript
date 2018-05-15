@@ -16,10 +16,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ExpressionVisitorTest {
     private ParserCreator parserCreator;
+    private LiteralArithmetic literalArithmetic;
 
     @Before
     public void setUp() throws Exception {
         parserCreator = new ParserCreator();
+        literalArithmetic = new LiteralArithmetic();
     }
 
     private Literal expression(String input) {
@@ -28,7 +30,7 @@ public class ExpressionVisitorTest {
 
     private Literal expression(String input, ScopeManager scopeManager) {
         EventScriptParser parser = parserCreator.fromString(input);
-        ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, new LiteralArithmetic());
+        ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, literalArithmetic);
         return visitor.visit(parser.expression());
     }
 

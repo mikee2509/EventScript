@@ -1,12 +1,13 @@
 package com.github.mikee2509.eventscript.domain.expression;
 
+import com.github.mikee2509.eventscript.domain.scope.Declarable;
 import lombok.AllArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
-public enum Type {
+public enum Type implements Returnable {
     BOOL        (Boolean.class),
     DATETIME    (LocalDateTime.class),
     DURATION    (Duration.class),

@@ -11,11 +11,10 @@ public class VisitorConfiguration {
 
     @Bean
     @Scope("prototype")
-    public ScriptVisitor scriptVisitor() {
+    public ScriptVisitor scriptVisitor(TypeVisitor typeVisitor) {
         ScopeManager scopeManager = new ScopeManager();
         ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, new LiteralArithmetic());
-        StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, new TypeVisitor());
-        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
-        return new ScriptVisitor(scopeManager, statementVisitor, functionVisitor);
+        StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
+        return new ScriptVisitor(scopeManager, statementVisitor, typeVisitor);
     }
 }

@@ -16,15 +16,19 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class StatementVisitorTest {
     private ParserCreator parserCreator;
+    private LiteralArithmetic literalArithmetic;
+    private TypeVisitor typeVisitor;
 
     @Before
     public void setUp() throws Exception {
         parserCreator = new ParserCreator();
+        literalArithmetic = new LiteralArithmetic();
+        typeVisitor = new TypeVisitor();
     }
 
     private void statement(String input, ScopeManager scopeManager) {
-        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, new LiteralArithmetic());
-        StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, new TypeVisitor());
+        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic);
+        StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         EventScriptParser parser = parserCreator.fromString(input);
         statementVisitor.visit(parser.statement());
     }
