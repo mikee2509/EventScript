@@ -11,6 +11,12 @@ import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -346,5 +352,29 @@ public class ExpressionVisitorTest {
         assertThat(literal.getValue()).isEqualTo(300);
         assertThat(scope.lookupSymbol("secondInt")).isEqualTo(new Literal<>(300));
         assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(300));
+    }
+
+    @Test
+    public void speakFunc() {
+        Logger logger = Logger.getLogger(ExpressionVisitor.class.getName());
+        List<String> logRecords = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logRecords.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() throws SecurityException {
+            }
+        };
+        logger.addHandler(handler);
+        expression("Speak(\"apple\")");
+        logger.removeHandler(handler);
+        assertThat(logRecords).containsOnly("apple");
     }
 }

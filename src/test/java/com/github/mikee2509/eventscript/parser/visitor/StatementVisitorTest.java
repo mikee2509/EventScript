@@ -11,6 +11,14 @@ import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -107,5 +115,33 @@ public class StatementVisitorTest {
         assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             statement("if (1) myInt = 50;", scope);
         }).withMessageContaining(Type.BOOL.getName());
+    }
+
+    @Test
+    public void visitForStmt() {
+        ScopeManager scope = new ScopeManager();
+        Logger logger = Logger.getLogger(ExpressionVisitor.class.getName());
+        List<String> logRecords = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logRecords.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() throws SecurityException {
+            }
+        };
+        logger.addHandler(handler);
+        statement("for(var i = 0; i<5; i = i+1) {\n" +
+            "\tSpeak(i);\n" +
+            "}", scope);
+        logger.removeHandler(handler);
+        assertThat(logRecords).isEqualTo(IntStream.range(0, 5).mapToObj(String::valueOf).collect(Collectors.toList()));
+
     }
 }

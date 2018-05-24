@@ -73,9 +73,9 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
             throw OperationException.differentTypeExpected(ctx.start, Type.BOOL);
         }
         if (((Literal<Boolean>) expression).getValue()) {
-            visitBlockOrStatement(ctx.blockOrStatement(0));
+            ctx.blockOrStatement(0).accept(this);
         } else {
-            visitBlockOrStatement(ctx.blockOrStatement(1));
+            ctx.blockOrStatement(1).accept(this);
         }
         return null;
     }
@@ -93,4 +93,32 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         ctx.statementExpression.accept(expressionVisitor);
         return null;
     }
+
+    @Override
+    public Void visitForStmt(EventScriptParser.ForStmtContext ctx) {
+        scope.subscope();
+        ctx.forInit().accept(this);
+
+        for (Literal expression = ctx.expression().accept(expressionVisitor);
+             expression.isBoolLiteral() ? (Boolean) expression.getValue() : false;
+             ctx.forUpdate.accept(expressionVisitor), expression = ctx.expression().accept(expressionVisitor)) {
+            ctx.blockOrStatement().accept(this);
+        }
+        scope.abandonScope();
+        return null;
+    }
+
+    @Override
+    public Void visitForInit(EventScriptParser.ForInitContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionList(EventScriptParser.ExpressionListContext ctx) {
+        ctx.accept(expressionVisitor);
+        return null;
+    }
+
+
 }

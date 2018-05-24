@@ -5,6 +5,7 @@ import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
+import com.github.mikee2509.eventscript.parser.exception.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
@@ -13,6 +14,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ScriptVisitorTest {
     private ParserCreator parserCreator;
@@ -70,6 +72,10 @@ public class ScriptVisitorTest {
             .isEqualToIgnoringGivenFields(makePair, "context");
         assertThat(scope.lookupSymbol("repeat"))
             .isEqualToIgnoringGivenFields(repeat, "context");
+
+        assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
+            script("var makePair : string;", scope);
+        });
 
     }
 }

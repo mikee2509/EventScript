@@ -39,6 +39,14 @@ public class Literal<T> implements Declarable {
         return Type.fromJavaType(value.getClass()) == Type.VOID;
     }
 
+    public boolean isTupleLiteral() {
+        return Type.fromJavaType(value.getClass()) == Type.TUPLE;
+    }
+
+    public static Literal voidLiteral() {
+        return new Literal<Void>(null);
+    }
+
     @Override
     public String toString() {
         return "Literal{" +
