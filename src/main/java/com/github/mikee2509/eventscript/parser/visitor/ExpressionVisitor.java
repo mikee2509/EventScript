@@ -122,19 +122,24 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     @Override
     public Literal visitUnaryExp(EventScriptParser.UnaryExpContext ctx) {
         Literal expression = ctx.expression().accept(this);
+        String variable = null;
         if (ctx.expression() instanceof EventScriptParser.IdentifierExpContext) {
-            String variable = ((EventScriptParser.IdentifierExpContext) ctx.expression()).IDENTIFIER().getText();
-        } // TODO update variable
+            variable = ((EventScriptParser.IdentifierExpContext) ctx.expression()).IDENTIFIER().getText();
+        }
 
         switch (ctx.prefix.getType()) {
             case EventScriptLexer.INC:
-                return applyOperation(ctx, expression,
+                Literal incLiteral = applyOperation(ctx, expression,
                     () -> new Literal<>((Integer) expression.getValue() + 1),
                     () -> new Literal<>((Float) expression.getValue() + 1.0f));
+                if (variable != null) scope.updateSymbol(variable, incLiteral);
+                return incLiteral;
             case EventScriptLexer.DEC:
-                return applyOperation(ctx, expression,
+                Literal decLiteral = applyOperation(ctx, expression,
                     () -> new Literal<>((Integer) expression.getValue() - 1),
                     () -> new Literal<>((Float) expression.getValue() - 1.0f));
+                if (variable != null) scope.updateSymbol(variable, decLiteral);
+                return decLiteral;
             case EventScriptLexer.ADD:
                 return applyOperation(ctx, expression,
                     () -> expression,

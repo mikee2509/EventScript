@@ -29,4 +29,12 @@ public class ScopeManager {
     public boolean updateSymbol(String identifier, Declarable value) {
         return scope.updateSymbol(identifier, value);
     }
+
+    public boolean isRootScope() {
+        return scope.getParentScope() == null;
+    }
+
+    public int numGloballyDefinedSymbols() {
+        return scope.numGloballyDefinedSymbols();
+    }
 }

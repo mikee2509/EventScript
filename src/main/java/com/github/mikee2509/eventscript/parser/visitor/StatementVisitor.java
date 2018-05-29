@@ -5,8 +5,7 @@ import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
-import com.github.mikee2509.eventscript.parser.exception.OperationException;
-import com.github.mikee2509.eventscript.parser.exception.ScopeException;
+import com.github.mikee2509.eventscript.parser.exception.*;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.AllArgsConstructor;
 import org.antlr.v4.runtime.Token;
@@ -74,7 +73,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         }
         if (((Literal<Boolean>) expression).getValue()) {
             ctx.blockOrStatement(0).accept(this);
-        } else {
+        } else if (ctx.ELSE() != null) {
             ctx.blockOrStatement(1).accept(this);
         }
         return null;
@@ -83,7 +82,12 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
     @Override
     public Void visitBlockOrStatement(EventScriptParser.BlockOrStatementContext ctx) {
         scope.subscope();
-        visitChildren(ctx);
+        try {
+            visitChildren(ctx);
+        } catch (ControlFlowException e) {
+            scope.abandonScope();
+            throw e;
+        }
         scope.abandonScope();
         return null;
     }
@@ -99,10 +103,16 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         scope.subscope();
         ctx.forInit().accept(this);
 
-        for (Literal expression = ctx.expression().accept(expressionVisitor);
-             expression.isBoolLiteral() ? (Boolean) expression.getValue() : false;
-             ctx.forUpdate.accept(expressionVisitor), expression = ctx.expression().accept(expressionVisitor)) {
-            ctx.blockOrStatement().accept(this);
+        try {
+            for (Literal expression = ctx.expression().accept(expressionVisitor);
+                 expression.isBoolLiteral() ? (Boolean) expression.getValue() : false;
+                 ctx.forUpdate.accept(expressionVisitor), expression = ctx.expression().accept(expressionVisitor)) {
+                try {
+                    ctx.blockOrStatement().accept(this);
+                } catch (ContinueException ignored) {
+                }
+            }
+        } catch (BreakException ignored) {
         }
         scope.abandonScope();
         return null;
@@ -120,5 +130,13 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitBreakStmt(EventScriptParser.BreakStmtContext ctx) {
+        throw new BreakException();
+    }
 
+    @Override
+    public Void visitContinueStmt(EventScriptParser.ContinueStmtContext ctx) {
+        throw new ContinueException();
+    }
 }

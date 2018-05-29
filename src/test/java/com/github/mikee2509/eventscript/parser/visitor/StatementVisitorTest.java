@@ -11,10 +11,9 @@ import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,12 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class StatementVisitorTest {
+    private TestUtils testUtils;
     private ParserCreator parserCreator;
     private LiteralArithmetic literalArithmetic;
     private TypeVisitor typeVisitor;
 
     @Before
     public void setUp() throws Exception {
+        testUtils = new TestUtils(Logger.getLogger(ExpressionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();
         typeVisitor = new TypeVisitor();
@@ -120,28 +121,84 @@ public class StatementVisitorTest {
     @Test
     public void visitForStmt() {
         ScopeManager scope = new ScopeManager();
-        Logger logger = Logger.getLogger(ExpressionVisitor.class.getName());
-        List<String> logRecords = new ArrayList<>();
-        Handler handler = new Handler() {
-            @Override
-            public void publish(LogRecord record) {
-                logRecords.add(record.getMessage());
-            }
-
-            @Override
-            public void flush() {
-            }
-
-            @Override
-            public void close() throws SecurityException {
-            }
-        };
-        logger.addHandler(handler);
-        statement("for(var i = 0; i<5; i = i+1) {\n" +
-            "\tSpeak(i);\n" +
-            "}", scope);
-        logger.removeHandler(handler);
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            statement("for (var i = 0; i<5; ++i) {\n" +
+                "\tSpeak(i)\n" +
+                "}", scope);
+        });
         assertThat(logRecords).isEqualTo(IntStream.range(0, 5).mapToObj(String::valueOf).collect(Collectors.toList()));
+    }
 
+
+    @Test
+    public void visitBreakStmt() {
+        ScopeManager scope = new ScopeManager();
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            statement("for (var i = 0; i<5; ++i) {\n" +
+                "\tif (i == 3) break\n" +
+                "\tSpeak(i)\n" +
+                "}", scope);
+        });
+        assertThat(logRecords).isEqualTo(IntStream.range(0, 3).mapToObj(String::valueOf).collect(Collectors.toList()));
+        assertThat(scope.isRootScope()).isTrue();
+        assertThat(scope.numGloballyDefinedSymbols()).isEqualTo(0);
+    }
+
+    @Test
+    public void visitBreakStmt_breaksOnlyInnerLoop() {
+        ScopeManager scope = new ScopeManager();
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            statement("for (var i = 0; i<3; ++i) {\n" +
+                "\tfor (var j = 0; j<5; ++j) {\n" +
+                "\t\tif (j == 2) break\n" +
+                "\t\tSpeak(j)\n" +
+                "\t}\n" +
+                "}", scope);
+        });
+        assertThat(logRecords).isEqualTo(
+            IntStream.range(0, 3)
+                .mapToObj(i -> Arrays.asList("0", "1"))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList())
+        );
+        assertThat(scope.isRootScope()).isTrue();
+        assertThat(scope.numGloballyDefinedSymbols()).isEqualTo(0);
+    }
+
+    @Test
+    public void visitContinueStmt() {
+        ScopeManager scope = new ScopeManager();
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            statement("for (var i = 0; i<5; ++i) {\n" +
+                "\tif (i == 3) continue\n" +
+                "\tSpeak(i)\n" +
+                "}", scope);
+        });
+        assertThat(logRecords).isEqualTo(
+            IntStream.range(0, 5).filter(i -> i != 3).mapToObj(String::valueOf).collect(Collectors.toList())
+        );
+        assertThat(scope.isRootScope()).isTrue();
+        assertThat(scope.numGloballyDefinedSymbols()).isEqualTo(0);
+    }
+
+    @Test
+    public void visitContinueStmt_breaksOnlyInnerLoop() {
+        ScopeManager scope = new ScopeManager();
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            statement("for (var i = 0; i<3; ++i) {\n" +
+                "\tfor (var j = 0; j<3; ++j) {\n" +
+                "\t\tif (j == 1) continue\n" +
+                "\t\tSpeak(j)\n" +
+                "\t}\n" +
+                "}", scope);
+        });
+        assertThat(logRecords).isEqualTo(
+            IntStream.range(0, 3)
+                .mapToObj(i -> Arrays.asList("0", "2"))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList())
+        );
+        assertThat(scope.isRootScope()).isTrue();
+        assertThat(scope.numGloballyDefinedSymbols()).isEqualTo(0);
     }
 }

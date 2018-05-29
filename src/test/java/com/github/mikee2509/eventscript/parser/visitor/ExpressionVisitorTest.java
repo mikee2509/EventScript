@@ -21,11 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ExpressionVisitorTest {
+    private TestUtils testUtils;
     private ParserCreator parserCreator;
     private LiteralArithmetic literalArithmetic;
 
     @Before
     public void setUp() throws Exception {
+        testUtils = new TestUtils(Logger.getLogger(ExpressionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();
     }
@@ -356,25 +358,9 @@ public class ExpressionVisitorTest {
 
     @Test
     public void speakFunc() {
-        Logger logger = Logger.getLogger(ExpressionVisitor.class.getName());
-        List<String> logRecords = new ArrayList<>();
-        Handler handler = new Handler() {
-            @Override
-            public void publish(LogRecord record) {
-                logRecords.add(record.getMessage());
-            }
-
-            @Override
-            public void flush() {
-            }
-
-            @Override
-            public void close() throws SecurityException {
-            }
-        };
-        logger.addHandler(handler);
-        expression("Speak(\"apple\")");
-        logger.removeHandler(handler);
+        List<String> logRecords = testUtils.captureLogs(() -> {
+            expression("Speak(\"apple\")");
+        });
         assertThat(logRecords).containsOnly("apple");
     }
 }

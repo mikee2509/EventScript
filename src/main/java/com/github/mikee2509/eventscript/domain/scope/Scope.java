@@ -47,4 +47,12 @@ public class Scope {
         }
         return false;
     }
+
+    public int numGloballyDefinedSymbols() {
+        int sum = 0;
+        for (Scope currentScope = this; currentScope != null; currentScope = currentScope.parentScope) {
+            sum += currentScope.symbolTable.size();
+        }
+        return sum;
+    }
 }
