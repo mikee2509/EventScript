@@ -36,7 +36,15 @@ public class Literal<T> implements Declarable {
     }
 
     public boolean isVoidLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.VOID;
+        return value == null;
+    }
+
+    public boolean isDurationLiteral() {
+        return Type.fromJavaType(value.getClass()) == Type.DURATION;
+    }
+
+    public boolean isDatetimeLiteral() {
+        return Type.fromJavaType(value.getClass()) == Type.DATETIME;
     }
 
     public boolean isTupleLiteral() {

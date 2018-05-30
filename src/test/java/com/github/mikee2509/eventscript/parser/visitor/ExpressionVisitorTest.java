@@ -1,6 +1,7 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
+import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
@@ -11,11 +12,15 @@ import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.within;
 
 public class ExpressionVisitorTest {
     private TestUtils testUtils;
@@ -143,6 +148,72 @@ public class ExpressionVisitorTest {
         literal = expression("4 % 3.0");
         assertThat(literal.isFloatLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(1.0f);
+    }
+
+    @Test
+    public void visitDatetimeLiteral() {
+        Literal literal = expression("datetime()");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat((LocalDateTime) literal.getValue()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
+
+        literal = expression("datetime(2018, 5, 10, 14, 45)");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(LocalDateTime.of(2018, 5, 10, 14, 45));
+
+        literal = expression("datetime(2018, 5, 10, 14, 45, 15)");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(LocalDateTime.of(2018, 5, 10, 14, 45, 15));
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("datetime(2018)");
+        });
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("datetime(2018, 5, 10)");
+        });
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("datetime(1, 2, 3, 4, 5, 6, 7)");
+        });
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("datetime(2018, 5, 10, \"14\", 45, 15)");
+        });
+    }
+
+    @Test
+    public void visitDurationLiteral() {
+        Literal literal = expression("duration()");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ZERO);
+
+        literal = expression("duration(5)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ofSeconds(5));
+
+        literal = expression("duration(5, 10)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ofSeconds(5).plusMinutes(10));
+
+        literal = expression("duration(5, 10, 1)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ofSeconds(5).plusMinutes(10).plusHours(1));
+
+        literal = expression("duration(5, 10, 1, 2)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ofSeconds(5).plusMinutes(10).plusHours(1).plusDays(2));
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("duration(\"5\")");
+        });
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("duration(1, \"5\")");
+        });
+
+        assertThatExceptionOfType(LiteralException.class).isThrownBy(() -> {
+            expression("duration(1, 2, 3, 4, 5)");
+        });
     }
 
 

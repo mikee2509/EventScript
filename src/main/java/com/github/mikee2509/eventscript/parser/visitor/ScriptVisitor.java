@@ -62,9 +62,9 @@ public class ScriptVisitor extends EventScriptParserBaseVisitor<Void> {
             return ctx.type(0).accept(typeVisitor);
         }
 
-        List<Type> types = ctx.type().stream()
+        Type[] types = ctx.type().stream()
             .map(typeCtx -> typeCtx.accept(typeVisitor))
-            .collect(Collectors.toList());
+            .toArray(Type[]::new);
         return Tuple.builder()
             .types(types)
             .build();

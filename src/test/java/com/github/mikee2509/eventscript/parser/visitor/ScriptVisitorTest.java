@@ -1,11 +1,11 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
+import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
@@ -45,7 +45,7 @@ public class ScriptVisitorTest {
             .parameters(Arrays.asList(
                 Function.Parameter.builder().name("a").type(Type.INT).build(),
                 Function.Parameter.builder().name("b").type(Type.INT).build()))
-            .returnType(Tuple.builder().types(Arrays.asList(Type.INT, Type.INT)).build())
+            .returnType(Tuple.builder().types(new Type[]{Type.INT, Type.INT}).build())
             .build();
 
         Function repeat = Function.builder()
