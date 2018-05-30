@@ -1,4 +1,4 @@
-package com.github.mikee2509.eventscript.parser.exception;
+package com.github.mikee2509.eventscript.domain.exception.parser;
 
 import org.antlr.v4.runtime.Token;
 

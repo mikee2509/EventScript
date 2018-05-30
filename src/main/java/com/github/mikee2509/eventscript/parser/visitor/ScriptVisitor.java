@@ -6,7 +6,7 @@ import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Returnable;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
-import com.github.mikee2509.eventscript.parser.exception.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.AllArgsConstructor;
 

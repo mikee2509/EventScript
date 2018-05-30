@@ -4,17 +4,14 @@ import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
-import com.github.mikee2509.eventscript.parser.exception.OperationException;
-import com.github.mikee2509.eventscript.parser.exception.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
