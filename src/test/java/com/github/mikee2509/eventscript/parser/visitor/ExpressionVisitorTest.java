@@ -234,8 +234,6 @@ public class ExpressionVisitorTest {
         assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("\"Hello \" - \"World!\"");
         });
-
-        // TODO test additive operation between string and time types
     }
 
 

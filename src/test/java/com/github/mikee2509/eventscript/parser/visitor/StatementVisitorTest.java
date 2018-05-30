@@ -1,16 +1,20 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
-import com.github.mikee2509.eventscript.domain.expression.Literal;
-import com.github.mikee2509.eventscript.domain.expression.Type;
-import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.expression.Literal;
+import com.github.mikee2509.eventscript.domain.expression.Type;
+import com.github.mikee2509.eventscript.domain.scope.Declarable;
+import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -18,8 +22,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 public class StatementVisitorTest {
     private TestUtils testUtils;
@@ -57,6 +60,17 @@ public class StatementVisitorTest {
         statement("var myString : string;", scope);
         assertThat(scope.lookupSymbol("myString")).isEqualTo(new Literal<>(""));
 
+        statement("var myDuration : duration", scope);
+        assertThat(scope.lookupSymbol("myDuration")).isEqualTo(new Literal<>(Duration.ZERO));
+
+        statement("var currentDate : datetime;", scope);
+        Declarable dateVariable = scope.lookupSymbol("currentDate");
+        assertThat(dateVariable).isInstanceOf(Literal.class);
+        Literal dateLiteral = (Literal) dateVariable;
+        assertThat(dateLiteral.isDatetimeLiteral()).isTrue();
+        assertThat((LocalDateTime) dateLiteral.getValue()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit
+            .SECONDS));
+
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
             statement("var myVoid : void;", scope);
         });
@@ -68,8 +82,6 @@ public class StatementVisitorTest {
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
             statement("var myInt : string;", scope);
         });
-
-        // TODO test declaring variable of duration and datetime type
     }
 
 
@@ -88,12 +100,19 @@ public class StatementVisitorTest {
         statement("var myString = \"Hello\";", scope);
         assertThat(scope.lookupSymbol("myString")).isEqualTo(new Literal<>("Hello"));
 
+        statement("var myDuration = duration(0, 5);", scope);
+        assertThat(scope.lookupSymbol("myDuration")).isEqualTo(new Literal<>(Duration.ofMinutes(5)));
+
+        statement("var myDatetime = datetime(2018, 5, 15, 13, 45);", scope);
+        assertThat(scope.lookupSymbol("myDatetime")).isEqualTo(
+            new Literal<>(LocalDateTime.of(2018, 5, 15, 13, 45))
+        );
+
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
             statement("var myInt = \"Test\";", scope);
         });
 
         // TODO test creating a variable from function returning void
-        // TODO test creating a variable from duration and datetime literals
     }
 
     @Test
