@@ -3,8 +3,8 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
+import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
-import com.github.mikee2509.eventscript.domain.exception.parser.Operation;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
@@ -18,8 +18,13 @@ import lombok.extern.java.Log;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
+
+import static com.github.mikee2509.eventscript.domain.exception.parser.Operation.*;
+import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 
 @Log
 @AllArgsConstructor
@@ -52,7 +57,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             return new Literal<>(LocalDateTime.now());
         } else if (parameters.isTupleLiteral()) {
             Tuple tuple = (Tuple) parameters.getValue();
-            if (tuple.size() < 5 || tuple.size() > 6 || Stream.of(tuple.types()).anyMatch(t -> t != Type.INT)) {
+            if (tuple.size() < 5 || tuple.size() > 6 || Stream.of(tuple.types()).anyMatch(t -> t != INT)) {
                 throw LiteralException.wrongDatetimeParameters(ctx.start);
             }
             LocalDateTime time = LocalDateTime.of(getIntValue(tuple, 0), getIntValue(tuple, 1), getIntValue(tuple, 2),
@@ -75,7 +80,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             return new Literal<>(Duration.ofSeconds((Integer) parameters.getValue()));
         } else if (parameters.isTupleLiteral()) {
             Tuple tuple = (Tuple) parameters.getValue();
-            if (tuple.size() > 4 || Stream.of(tuple.types()).anyMatch(t -> t != Type.INT)) {
+            if (tuple.size() > 4 || Stream.of(tuple.types()).anyMatch(t -> t != INT)) {
                 throw LiteralException.wrongDurationParameters(ctx.start);
             }
             Duration duration = Duration.ofSeconds(getIntValue(tuple, 0))
@@ -123,7 +128,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             if (ctx.bop.getType() == EventScriptLexer.ADD) {
                 return new Literal<>(left.getValue().toString() + right.getValue().toString());
             } else {
-                throw new OperationException(ctx.start, left, right, Operation.ADDITIVE);
+                throw new OperationException(ctx.start, left, right, ADDITIVE);
             }
         }
 
@@ -159,7 +164,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         if (result != null) {
             return result;
         } else {
-            throw new OperationException(ctx.start, left, right, Operation.ADDITIVE);
+            throw new OperationException(ctx.start, left, right, ADDITIVE);
         }
     }
 
@@ -173,7 +178,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             () -> la.floatMultiplicativeOperation(left, right, ctx.bop));
 
         if (result != null) return result;
-        throw new OperationException(ctx.start, left, right, Operation.MULTIPLICATIVE);
+        throw new OperationException(ctx.start, left, right, MULTIPLICATIVE);
     }
 
     private Literal applyOperation(Literal left, Literal right, LiteralOperation decimalOperation,
@@ -223,7 +228,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
                     () -> new Literal<>(-(Float) expression.getValue()));
         }
 
-        throw new OperationException(ctx.start, expression, Operation.UNARY);
+        throw new OperationException(ctx.start, expression, UNARY);
     }
 
     private Literal applyOperation(EventScriptParser.UnaryExpContext ctx, Literal expression,
@@ -233,7 +238,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         } else if (expression.isFloatLiteral()) {
             return floatOperation.execute();
         } else {
-            throw new OperationException(ctx.start, expression, Operation.UNARY);
+            throw new OperationException(ctx.start, expression, UNARY);
         }
     }
 
@@ -244,7 +249,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         if (expression.isBoolLiteral()) {
             return new Literal<>(!(Boolean) expression.getValue());
         } else {
-            throw new OperationException(ctx.start, expression, Operation.NEGATION);
+            throw new OperationException(ctx.start, expression, NEGATION);
         }
     }
 
@@ -304,7 +309,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
 
         // TODO comparison between duration and datetime
 
-        throw new OperationException(ctx.start, left, right, Operation.RELATIONAL);
+        throw new OperationException(ctx.start, left, right, RELATIONAL);
     }
 
     @Override
@@ -332,6 +337,14 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     }
 
     @Override
+    public Literal visitParExpressionList(EventScriptParser.ParExpressionListContext ctx) {
+        if (ctx.expressionList() == null) {
+            return Literal.voidLiteral();
+        }
+        return ctx.expressionList().accept(this);
+    }
+
+    @Override
     public Literal visitExpressionList(EventScriptParser.ExpressionListContext ctx) {
         ExpressionVisitor expressionVisitor = this;
         if (ctx.expression().size() == 1) {
@@ -346,27 +359,56 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         return new Literal<>(tuple);
     }
 
-    @Override
-    public Literal visitParExpressionList(EventScriptParser.ParExpressionListContext ctx) {
-        if (ctx.expressionList() == null) {
-            return Literal.voidLiteral();
-        }
-        return ctx.expressionList().accept(this);
-    }
-
-    @Override
-    public Literal visitBuiltInFunctionCall(EventScriptParser.BuiltInFunctionCallContext ctx) {
-        return ctx.builtInFunction().accept(this);
+    private Literal getBuiltInFuncParams(EventScriptParser.BuiltInFunctionContext ctx) {
+        return ((EventScriptParser.BuiltInFunctionCallContext) ctx.parent).parExpressionList().accept(this);
     }
 
     @Override
     public Literal visitSpeakFunc(EventScriptParser.SpeakFuncContext ctx) {
-        Literal params = getParameters(ctx);
+        Literal params = getBuiltInFuncParams(ctx);
         log.info(params.getValue().toString());
         return Literal.voidLiteral();
     }
 
-    private Literal getParameters(EventScriptParser.BuiltInFunctionContext ctx) {
-        return ((EventScriptParser.BuiltInFunctionCallContext) ctx.parent).parExpressionList().accept(this);
+    @Override
+    public Literal visitLiteralFuncExp(EventScriptParser.LiteralFuncExpContext ctx) {
+        return super.visitLiteralFuncExp(ctx);
+    }
+
+    private Literal getLiteralFuncExpression(EventScriptParser.LiteralFunctionContext ctx) {
+        return ((EventScriptParser.LiteralFuncExpContext) ctx.parent.parent).expression().accept(this);
+    }
+
+    @Override
+    public Literal visitToStringFunc(EventScriptParser.ToStringFuncContext ctx) {
+        Literal expression = getLiteralFuncExpression(ctx);
+        Type[] stringableTypes = {BOOL, DATETIME, DURATION, FLOAT, INT, STRING};
+        if (Stream.of(stringableTypes).anyMatch(type -> type == expression.getLiteralType())) {
+            if (expression.isDatetimeLiteral()) {
+                LocalDateTime date = (LocalDateTime) expression.getValue();
+                return new Literal<>(date.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)));
+            }
+            if (expression.isDurationLiteral()) {
+                Duration duration = (Duration) expression.getValue();
+                StringBuilder d = new StringBuilder();
+                if (duration.getSeconds() >= 86400) {
+                    d.append(duration.toDays()).append("d ");
+                    duration = duration.minusDays(duration.toDays());
+                }
+                if (duration.getSeconds() >= 3600) {
+                    d.append(duration.toHours()).append("h ");
+                    duration = duration.minusHours(duration.toHours());
+                }
+                if (duration.getSeconds() >= 60) {
+                    d.append(duration.toMinutes()).append("m ");
+                    duration = duration.minusMinutes(duration.toMinutes());
+                }
+                d.append(duration.getSeconds()).append("s");
+                return new Literal<>(d.toString());
+            }
+            return new Literal<>(expression.getValue().toString());
+        } else {
+            throw FunctionException.toStringException(ctx.start, stringableTypes);
+        }
     }
 }

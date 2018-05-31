@@ -44,6 +44,11 @@ ON_WIFI_ENABLED:    'OnWifiEnabled';
 ON_WIFI_DISABLED:   'OnWifiDisabled';
 
 
+// Literal functions
+TO_STRING:          'toString';
+
+
+
 // Literals
 DECIMAL_LITERAL:    '0'
                |    [1-9] Digit*
@@ -88,6 +93,7 @@ DIV:                '/';
 MOD:                '%';
 COLON:              ':';
 ARROW:              '->';
+LOWLINE:            '_';
 
 
 // Whitespace and comments

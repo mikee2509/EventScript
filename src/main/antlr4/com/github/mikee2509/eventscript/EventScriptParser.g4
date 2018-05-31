@@ -37,20 +37,20 @@ forInit
     ;
 
 expression
-    : literal                                                   #literalExp
-    | IDENTIFIER                                                #identifierExp
-    | expression bop='.' ( IDENTIFIER | functionCall)           #childExp
-    | functionCall                                              #functionExp
-    | builtInFunctionCall                                       #builtInFuncExp
-    | prefix=('+'|'-'|'++'|'--') expression                     #unaryExp
-    | prefix='!' expression                                     #negationExp
-    | expression bop=('*'|'/'|'%') expression                   #multiplicativeExp
-    | expression bop=('+'|'-') expression                       #additiveExp
-    | expression bop=('<=' | '>=' | '>' | '<') expression       #relationalExp
-    | expression bop=('==' | '!=') expression                   #equalityExp
-    | expression bop='&&' expression                            #logicalAndExp
-    | expression bop='||' expression                            #logicalOrExp
-    | <assoc=right> expression bop='=' expression               #assignmentExp
+    : literal                                                     #literalExp
+    | IDENTIFIER                                                  #identifierExp
+    | expression bop='.' (literalFunctionCall)                    #literalFuncExp
+    | functionCall                                                #functionExp
+    | builtInFunctionCall                                         #builtInFuncExp
+    | prefix=('+'|'-'|'++'|'--') expression                       #unaryExp
+    | prefix='!' expression                                       #negationExp
+    | expression bop=('*'|'/'|'%') expression                     #multiplicativeExp
+    | expression bop=('+'|'-') expression                         #additiveExp
+    | expression bop=('<=' | '>=' | '>' | '<') expression         #relationalExp
+    | expression bop=('==' | '!=') expression                     #equalityExp
+    | expression bop='&&' expression                              #logicalAndExp
+    | expression bop='||' expression                              #logicalOrExp
+    | <assoc=right> expression bop='=' expression                 #assignmentExp
     ;
 
 literal
@@ -68,6 +68,10 @@ functionCall
 
 builtInFunctionCall
     : builtInFunction parExpressionList
+    ;
+
+literalFunctionCall
+    : literalFunction parExpressionList?
     ;
 
 parExpressionList
@@ -109,6 +113,11 @@ builtInFunction
     | ON_MESSAGE               #onMessageScheduleFunc
     | ON_WIFI_ENABLED          #onWifiEnabledScheduleFunc
     | ON_WIFI_DISABLED         #onWifiDisabledScheduleFunc
+    ;
+
+literalFunction
+    : TO_STRING                #toStringFunc
+    | '_' DECIMAL_LITERAL      #tupleExtractFunc
     ;
 
 function

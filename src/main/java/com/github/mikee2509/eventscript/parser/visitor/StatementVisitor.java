@@ -2,20 +2,22 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
+import com.github.mikee2509.eventscript.domain.exception.control.BreakException;
+import com.github.mikee2509.eventscript.domain.exception.control.ContinueException;
+import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
-import com.github.mikee2509.eventscript.domain.exception.control.BreakException;
-import com.github.mikee2509.eventscript.domain.exception.control.ContinueException;
-import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.AllArgsConstructor;
 import org.antlr.v4.runtime.Token;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+
+import static com.github.mikee2509.eventscript.domain.expression.Type.BOOL;
 
 @AllArgsConstructor
 public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
@@ -73,7 +75,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
     public Void visitIfStmt(EventScriptParser.IfStmtContext ctx) {
         Literal expression = ctx.expression().accept(expressionVisitor);
         if (!expression.isBoolLiteral()) {
-            throw OperationException.differentTypeExpected(ctx.start, Type.BOOL);
+            throw OperationException.differentTypeExpected(ctx.start, BOOL);
         }
         if (((Literal<Boolean>) expression).getValue()) {
             ctx.blockOrStatement(0).accept(this);

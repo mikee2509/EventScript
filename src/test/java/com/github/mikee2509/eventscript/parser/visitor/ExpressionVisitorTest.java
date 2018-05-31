@@ -1,11 +1,11 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
+import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
-import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
@@ -18,6 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
 import static org.assertj.core.api.Assertions.*;
 
 public class ExpressionVisitorTest {
@@ -445,7 +446,7 @@ public class ExpressionVisitorTest {
 
         assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("myInt = 1.0", scope);
-        }).withMessageContaining(Type.INT.getName());
+        }).withMessageContaining(INT.getName());
 
         literal = expression("secondInt = myInt = 300", scope);
         assertThat(literal.isDecimalLiteral()).isTrue();
@@ -460,5 +461,16 @@ public class ExpressionVisitorTest {
             expression("Speak(\"apple\")");
         });
         assertThat(logRecords).containsOnly("apple");
+    }
+
+    @Test
+    public void toStringFunc() {
+        Literal expression = expression("duration(1,2,3,4).toString");
+        assertThat(expression.isStringLiteral()).isTrue();
+        assertThat(expression.getValue()).isEqualTo("4d 3h 2m 1s");
+
+        expression = expression("datetime(2018,5,15,13,45).toString");
+        assertThat(expression.isStringLiteral()).isTrue();
+        assertThat(expression.getValue()).isEqualTo("2018-05-15 13:45:00");
     }
 }

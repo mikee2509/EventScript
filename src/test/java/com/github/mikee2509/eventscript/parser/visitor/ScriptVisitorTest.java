@@ -13,6 +13,9 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static com.github.mikee2509.eventscript.domain.expression.Type.FUNC;
+import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
+import static com.github.mikee2509.eventscript.domain.expression.Type.VOID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -43,17 +46,17 @@ public class ScriptVisitorTest {
         Function makePair = Function.builder()
             .name("makePair")
             .parameters(Arrays.asList(
-                Function.Parameter.builder().name("a").type(Type.INT).build(),
-                Function.Parameter.builder().name("b").type(Type.INT).build()))
-            .returnType(Tuple.builder().types(new Type[]{Type.INT, Type.INT}).build())
+                Function.Parameter.builder().name("a").type(INT).build(),
+                Function.Parameter.builder().name("b").type(INT).build()))
+            .returnType(Tuple.builder().types(new Type[]{INT, INT}).build())
             .build();
 
         Function repeat = Function.builder()
             .name("repeat")
             .parameters(Arrays.asList(
-                Function.Parameter.builder().name("times").type(Type.INT).build(),
-                Function.Parameter.builder().name("callback").type(Type.FUNC).build()))
-            .returnType(Type.VOID)
+                Function.Parameter.builder().name("times").type(INT).build(),
+                Function.Parameter.builder().name("callback").type(FUNC).build()))
+            .returnType(VOID)
             .build();
 
         String input =
