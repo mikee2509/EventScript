@@ -122,8 +122,6 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal left = ctx.expression(0).accept(this);
         Literal right = ctx.expression(1).accept(this);
 
-        //TODO implement datetime/duration toString -> no need to explicitly implement to-string-addition
-
         if (left.isStringLiteral() || right.isStringLiteral()) {
             if (ctx.bop.getType() == EventScriptLexer.ADD) {
                 return new Literal<>(left.getValue().toString() + right.getValue().toString());
@@ -301,13 +299,18 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal left = ctx.expression(0).accept(this);
         Literal right = ctx.expression(1).accept(this);
 
+        if (left.isDatetimeLiteral() && right.isDatetimeLiteral()) {
+            return la.datetimeRelationalOperation(left, right, ctx.bop);
+        }
+        if (left.isDurationLiteral() && right.isDurationLiteral()) {
+            return la.durationRelationalOperation(left, right, ctx.bop);
+        }
+
         Literal result = applyOperation(left, right,
             () -> la.decimalRelationalOperation(left, right, ctx.bop),
             () -> la.floatRelationalOperation(left, right, ctx.bop));
 
         if (result != null) return result;
-
-        // TODO comparison between duration and datetime
 
         throw new OperationException(ctx.start, left, right, RELATIONAL);
     }

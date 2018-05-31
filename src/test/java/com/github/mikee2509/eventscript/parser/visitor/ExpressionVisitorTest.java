@@ -1,7 +1,6 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
-import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
@@ -371,6 +370,14 @@ public class ExpressionVisitorTest {
         assertThat(literal.isBoolLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(true);
 
+        literal = expression("datetime(2018,5,15,13,45) == datetime(2018,5,15,13,45)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("duration(60) == duration(0,1)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
 
         literal = expression("2 != 2");
         assertThat(literal.isBoolLiteral()).isTrue();
@@ -391,6 +398,14 @@ public class ExpressionVisitorTest {
         literal = expression("2 != 2.0");
         assertThat(literal.isBoolLiteral()).isTrue();
         assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("datetime(2018,5,15,13,45) != datetime(2017,5,15,13,45)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("duration(60) != duration(1,1)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
     }
 
 
@@ -416,7 +431,37 @@ public class ExpressionVisitorTest {
             expression("\"1\" < \"2\"");
         });
 
-        // TODO test relational operations between time types
+        literal = expression("duration(60) < duration(1,1)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("duration(60) <= duration(0,1)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("duration(60,1) > duration(0,2)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("duration(60,1,1) >= duration(0,2)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("datetime(2018,5,15,13,45) < datetime(2018,5,15,13,45,1)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("datetime(2018,5,15,13,45) <= datetime(2019,5,15,13,45)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
+
+        literal = expression("datetime(2018,5,15,13,45) > datetime(2019,5,15,13,45)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(false);
+
+        literal = expression("datetime(2018,5,15,13,45) >= datetime(2018,5,15,13,45)");
+        assertThat(literal.isBoolLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(true);
     }
 
     @Test

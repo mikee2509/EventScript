@@ -5,6 +5,9 @@ import com.github.mikee2509.eventscript.domain.expression.Literal;
 import org.antlr.v4.runtime.Token;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 @Service
 public class LiteralArithmetic {
     public Literal<Integer> decimalAdditiveOperation(Literal<Integer> left, Literal<Integer> right, Token bop) {
@@ -61,8 +64,8 @@ public class LiteralArithmetic {
     public Literal<Boolean> decimalRelationalOperation(Literal<Integer> left, Literal<Integer> right, Token bop) {
         int intLeft = left.getValue();
         int intRight = right.getValue();
-        return relationalOperation(bop, intLeft < intRight, intLeft > intRight, intLeft <= intRight, intLeft >=
-            intRight);
+        return relationalOperation(bop, intLeft < intRight, intLeft > intRight, intLeft <= intRight,
+            intLeft >= intRight);
     }
 
     public Literal<Boolean> floatRelationalOperation(Literal<Number> left, Literal<Number> right, Token bop) {
@@ -70,6 +73,22 @@ public class LiteralArithmetic {
         float floatRight = right.getValue().floatValue();
         return relationalOperation(bop, floatLeft < floatRight, floatLeft > floatRight, floatLeft <= floatRight,
             floatLeft >= floatRight);
+    }
+
+    public Literal<Boolean> durationRelationalOperation(Literal<Duration> leftLiteral, Literal<Duration> rightLiteral,
+                                                        Token bop) {
+        Duration left = leftLiteral.getValue();
+        Duration right = rightLiteral.getValue();
+        return relationalOperation(bop, left.compareTo(right) < 0, left.compareTo(right) > 0,
+            left.compareTo(right) <= 0, left.compareTo(right) >= 0);
+    }
+
+    public Literal<Boolean> datetimeRelationalOperation(Literal<LocalDateTime> leftLiteral,
+                                                        Literal<LocalDateTime> rightLiteral, Token bop) {
+        LocalDateTime left = leftLiteral.getValue();
+        LocalDateTime right = rightLiteral.getValue();
+        return relationalOperation(bop, left.compareTo(right) < 0, left.compareTo(right) > 0,
+            left.compareTo(right) <= 0, left.compareTo(right) >= 0);
     }
 
     private Literal<Boolean> relationalOperation(Token bop, boolean lt, boolean gt, boolean le, boolean ge) {
