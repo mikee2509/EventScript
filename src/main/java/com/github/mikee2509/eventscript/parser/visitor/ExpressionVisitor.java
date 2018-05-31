@@ -117,7 +117,6 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal left = ctx.expression(0).accept(this);
         Literal right = ctx.expression(1).accept(this);
 
-        //TODO implement datetime-duration addition
         //TODO implement datetime/duration toString -> no need to explicitly implement to-string-addition
 
         if (left.isStringLiteral() || right.isStringLiteral()) {
@@ -125,6 +124,31 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
                 return new Literal<>(left.getValue().toString() + right.getValue().toString());
             } else {
                 throw new OperationException(ctx.start, left, right, Operation.ADDITIVE);
+            }
+        }
+
+        if (left.isDatetimeLiteral() && right.isDurationLiteral()) {
+            LocalDateTime date = (LocalDateTime) left.getValue();
+            Duration duration = (Duration) right.getValue();
+            if (ctx.bop.getType() == EventScriptLexer.ADD) {
+                return new Literal<>(date.plus(duration));
+            } else {
+                return new Literal<>(date.minus(duration));
+            }
+
+        }
+        if (left.isDurationLiteral() && right.isDatetimeLiteral() && ctx.bop.getType() == EventScriptLexer.ADD) {
+            Duration duration = (Duration) left.getValue();
+            LocalDateTime date = (LocalDateTime) right.getValue();
+            return new Literal<>(date.plus(duration));
+        }
+        if (left.isDurationLiteral() && right.isDurationLiteral()) {
+            Duration leftDuration = (Duration) left.getValue();
+            Duration rightDuration = (Duration) right.getValue();
+            if (ctx.bop.getType() == EventScriptLexer.ADD) {
+                return new Literal<>(leftDuration.plus(rightDuration));
+            } else {
+                return new Literal<>(leftDuration.minus(rightDuration));
             }
         }
 

@@ -2,11 +2,11 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
+import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
-import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import org.junit.Before;
@@ -18,9 +18,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assertions.*;
 
 public class ExpressionVisitorTest {
     private TestUtils testUtils;
@@ -89,6 +87,40 @@ public class ExpressionVisitorTest {
         assertThat(literal.getValue()).isEqualTo(-89.5f);
     }
 
+    @Test
+    public void datetimeDurationAdditiveOperations() {
+        Literal literal = expression("datetime(2018,5,15,13,45) + duration(0,20,0,10)");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(LocalDateTime.of(2018, 5, 25, 14, 5));
+
+        literal = expression("duration(0,20,0,10) + datetime(2018,5,15,13,45)");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(LocalDateTime.of(2018, 5, 25, 14, 5));
+
+        literal = expression("datetime(2018,5,15,13,45) - duration(0,20,0,10)");
+        assertThat(literal.isDatetimeLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(LocalDateTime.of(2018, 5, 5, 13, 25));
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("duration(0,20,0,10) - datetime(2018,5,15,13,45)");
+        });
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("datetime(2018,5,15,13,45) - datetime(2018,5,15,13,45)");
+        });
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("datetime(2018,5,15,13,45) + datetime(2018,5,15,13,45)");
+        });
+
+        literal = expression("duration(0,20,0,10) + duration(0,20,0,10)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ofDays(20).plusMinutes(40));
+
+        literal = expression("duration(0,20,0,10) - duration(0,20,0,10)");
+        assertThat(literal.isDurationLiteral()).isTrue();
+        assertThat(literal.getValue()).isEqualTo(Duration.ZERO);
+    }
 
     @Test
     public void integerMultiplicativeOperations() {
