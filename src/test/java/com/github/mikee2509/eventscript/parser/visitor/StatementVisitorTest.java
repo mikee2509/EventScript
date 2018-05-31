@@ -119,16 +119,23 @@ public class StatementVisitorTest {
     public void visitIfStmt() {
         ScopeManager scope = new ScopeManager();
         scope.defineSymbol("myInt", new Literal<>(0));
-        statement("if (true) {\n" +
-            "   myInt = 10\n" +
-            "} else {\n" +
-            "   myInt = 20\n" +
-            "}", scope);
+        //@formatter:off
+        String input = "if (true) {         \n" +
+                       "   myInt = 10       \n" +
+                       "} else {            \n" +
+                       "   my  Int = 20     \n" +
+                       "}                     " ;
+        //@formatter:on
+        statement(input, scope);
 
         assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(10));
 
-        statement("if (false) myInt = 30\n" +
-            "else myInt = 40\n", scope);
+        //@formatter:off
+        String input2 = "if (false) myInt = 30  \n" +
+                        "else myInt = 40        \n" ;
+        //@formatter:on
+
+        statement(input2, scope);
 
         assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(40));
 
@@ -141,9 +148,12 @@ public class StatementVisitorTest {
     public void visitForStmt() {
         ScopeManager scope = new ScopeManager();
         List<String> logRecords = testUtils.captureLogs(() -> {
-            statement("for (var i = 0; i<5; ++i) {\n" +
-                "\tSpeak(i)\n" +
-                "}", scope);
+            //@formatter:off
+            String input = "for (var i = 0; i<5; ++i) {     \n" +
+                           "    Speak(i)                    \n" +
+                           "}                                 " ;
+            //@formatter:on
+            statement(input, scope);
         });
         assertThat(logRecords).isEqualTo(IntStream.range(0, 5).mapToObj(String::valueOf).collect(Collectors.toList()));
     }
@@ -153,10 +163,13 @@ public class StatementVisitorTest {
     public void visitBreakStmt() {
         ScopeManager scope = new ScopeManager();
         List<String> logRecords = testUtils.captureLogs(() -> {
-            statement("for (var i = 0; i<5; ++i) {\n" +
-                "\tif (i == 3) break\n" +
-                "\tSpeak(i)\n" +
-                "}", scope);
+            //@formatter:off
+            String input = "for (var i = 0; i<5; ++i) {   \n" +
+                           "    if (i == 3) break         \n" +
+                           "    Speak(i)                  \n" +
+                           "}                               " ;
+            //@formatter:on
+            statement(input, scope);
         });
         assertThat(logRecords).isEqualTo(IntStream.range(0, 3).mapToObj(String::valueOf).collect(Collectors.toList()));
         assertThat(scope.isRootScope()).isTrue();
@@ -167,12 +180,15 @@ public class StatementVisitorTest {
     public void visitBreakStmt_breaksOnlyInnerLoop() {
         ScopeManager scope = new ScopeManager();
         List<String> logRecords = testUtils.captureLogs(() -> {
-            statement("for (var i = 0; i<3; ++i) {\n" +
-                "\tfor (var j = 0; j<5; ++j) {\n" +
-                "\t\tif (j == 2) break\n" +
-                "\t\tSpeak(j)\n" +
-                "\t}\n" +
-                "}", scope);
+            //@formatter:off
+            String input = "for (var i = 0; i<3; ++i) {       \n" +
+                           "    for (var j = 0; j<5; ++j) {   \n" +
+                           "        if (j == 2) break         \n" +
+                           "        Speak(j)                  \n" +
+                           "    }                             \n" +
+                           "}                                   " ;
+            //@formatter:on
+            statement(input, scope);
         });
         assertThat(logRecords).isEqualTo(
             IntStream.range(0, 3)
@@ -188,10 +204,13 @@ public class StatementVisitorTest {
     public void visitContinueStmt() {
         ScopeManager scope = new ScopeManager();
         List<String> logRecords = testUtils.captureLogs(() -> {
-            statement("for (var i = 0; i<5; ++i) {\n" +
-                "\tif (i == 3) continue\n" +
-                "\tSpeak(i)\n" +
-                "}", scope);
+            //@formatter:off
+            String input = "for (var i = 0; i<5; ++i) {     \n" +
+                           "    if (i == 3) continue        \n" +
+                           "    Speak(i)                    \n" +
+                           "}                                 " ;
+            //@formatter:on
+            statement(input, scope);
         });
         assertThat(logRecords).isEqualTo(
             IntStream.range(0, 5).filter(i -> i != 3).mapToObj(String::valueOf).collect(Collectors.toList())
@@ -204,12 +223,15 @@ public class StatementVisitorTest {
     public void visitContinueStmt_breaksOnlyInnerLoop() {
         ScopeManager scope = new ScopeManager();
         List<String> logRecords = testUtils.captureLogs(() -> {
-            statement("for (var i = 0; i<3; ++i) {\n" +
-                "\tfor (var j = 0; j<3; ++j) {\n" +
-                "\t\tif (j == 1) continue\n" +
-                "\t\tSpeak(j)\n" +
-                "\t}\n" +
-                "}", scope);
+            //@formatter:off
+            String input = "for (var i = 0; i<3; ++i) {         \n" +
+                           "    for (var j = 0; j<3; ++j) {     \n" +
+                           "        if (j == 1) continue        \n" +
+                           "        Speak(j)                    \n" +
+                           "    }                               \n" +
+                           "}                                     " ;
+            //@formatter:on
+            statement(input, scope);
         });
         assertThat(logRecords).isEqualTo(
             IntStream.range(0, 3)

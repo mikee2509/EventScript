@@ -13,9 +13,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static com.github.mikee2509.eventscript.domain.expression.Type.FUNC;
-import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
-import static com.github.mikee2509.eventscript.domain.expression.Type.VOID;
+import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -59,16 +57,18 @@ public class ScriptVisitorTest {
             .returnType(VOID)
             .build();
 
+        //@formatter:off
         String input =
-            "func makePair(a: int, b: int) -> (int, int) {\n" +
-                "    return a, b\n" +
-                "}\n" +
-                "\n" +
-                "func repeat(times: int, callback: func) {\n" +
-                "    for(var i = 0; i < times; ++i) {\n" +
-                "        callback()\n" +
-                "    } \n" +
-                "}";
+            "func makePair(a: int, b: int) -> (int, int) {  \n" +
+            "    return a, b                                \n" +
+            "}                                              \n" +
+            "                                               \n" +
+            "func repeat(times: int, callback: func) {      \n" +
+            "    for(var i = 0; i < times; ++i) {           \n" +
+            "        callback()                             \n" +
+            "    }                                          \n" +
+            "}";
+        //@formatter:on
 
         script(input, scope);
         assertThat(scope.lookupSymbol("makePair"))
