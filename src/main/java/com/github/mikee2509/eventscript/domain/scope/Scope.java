@@ -1,5 +1,6 @@
 package com.github.mikee2509.eventscript.domain.scope;
 
+import com.github.mikee2509.eventscript.domain.expression.Function;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
@@ -9,17 +10,27 @@ import java.util.Map;
 public class Scope {
     private Map<String, Declarable> symbolTable = new HashMap<>();
     private Scope parentScope;
+    private Function function;
 
-    private Scope(Scope parentScope) {
+    private Scope(Scope parentScope, Function function) {
         this.parentScope = parentScope;
+        this.function = function;
     }
 
     public Scope subscope() {
-        return new Scope(this);
+        return new Scope(this, this.function);
+    }
+
+    public Scope subscope(Function function) {
+        return new Scope(this, function);
     }
 
     public Scope getParentScope() {
         return parentScope;
+    }
+
+    public Function getFunction() {
+        return function;
     }
 
     public boolean defineSymbol(String identifier, Declarable value) {

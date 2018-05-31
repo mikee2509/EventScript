@@ -10,6 +10,7 @@ import com.github.mikee2509.eventscript.domain.exception.parser.FunctionExceptio
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ public class ScriptVisitor extends EventScriptParserBaseVisitor<Void> {
 
     @Override
     public Void visitFunction(EventScriptParser.FunctionContext ctx) {
+        //TODO parameters must have unique names
         Function function = Function.builder()
             .name(ctx.IDENTIFIER().getText())
             .parameters(visitParameters(ctx.parameterList()))
@@ -40,6 +42,9 @@ public class ScriptVisitor extends EventScriptParserBaseVisitor<Void> {
     }
 
     private List<Function.Parameter> visitParameters(EventScriptParser.ParameterListContext ctx) {
+        if (ctx == null) {
+            return new ArrayList<>();
+        }
         return ctx.parameter().stream()
             .map(this::extractParameter)
             .collect(Collectors.toList());
@@ -47,6 +52,7 @@ public class ScriptVisitor extends EventScriptParserBaseVisitor<Void> {
 
     private Function.Parameter extractParameter(EventScriptParser.ParameterContext ctx) {
         Type type = ctx.type().accept(typeVisitor);
+        //TODO is it the only parameter type to reject
         if (type == Type.VOID) throw FunctionException.voidParameter(ctx.start);
         return Function.Parameter.builder()
             .name(ctx.IDENTIFIER().getText())

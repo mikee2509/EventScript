@@ -1,5 +1,6 @@
 package com.github.mikee2509.eventscript.parser.util;
 
+import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
 import com.github.mikee2509.eventscript.domain.scope.Scope;
 
@@ -14,8 +15,16 @@ public class ScopeManager {
         scope = scope.subscope();
     }
 
+    public void subscope(Function function) {
+        scope = scope.subscope(function);
+    }
+
     public void abandonScope() {
         scope = scope.getParentScope();
+    }
+
+    public Function getFunction() {
+        return scope.getFunction();
     }
 
     public boolean defineSymbol(String identifier, Declarable value) {

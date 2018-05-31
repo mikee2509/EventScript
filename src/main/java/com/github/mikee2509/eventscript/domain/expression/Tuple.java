@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Builder
 @EqualsAndHashCode
@@ -31,12 +32,30 @@ public class Tuple implements Declarable, Returnable {
         }
     }
 
+    public static Tuple fromLiteralList(List<Literal> literals) {
+        return literals.stream()
+            .collect(Tuple.Creator::new, Tuple.Creator::add, (no, op) -> {})
+            .create();
+    }
+
+    public static Creator creator() {
+        return new Creator();
+    }
+
     public Type[] types() {
         return types;
     }
 
+    public Stream<Type> typeStream() {
+        return Stream.of(types);
+    }
+
     public Literal[] literals() {
         return literals;
+    }
+
+    public Stream<Literal> literalStream() {
+        return Stream.of(literals);
     }
 
     public int size() {

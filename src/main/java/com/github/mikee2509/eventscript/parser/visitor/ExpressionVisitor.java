@@ -3,10 +3,13 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
+import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
+import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
 import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
@@ -20,6 +23,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
@@ -27,10 +32,19 @@ import static com.github.mikee2509.eventscript.domain.exception.parser.Operation
 import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 
 @Log
-@AllArgsConstructor
 public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     private ScopeManager scope;
     private LiteralArithmetic la;
+    private List<FunctionCallListener> functionCallListeners = new ArrayList<>();
+
+    public ExpressionVisitor(ScopeManager scope, LiteralArithmetic la) {
+        this.scope = scope;
+        this.la = la;
+    }
+
+    public void addFunctionCallListener(FunctionCallListener functionCallListener) {
+        functionCallListeners.add(functionCallListener);
+    }
 
     private interface LiteralOperation {
         Literal execute();
@@ -76,15 +90,15 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         Literal parameters = ctx.parExpressionList().accept(this);
         if (parameters.isVoidLiteral()) {
             return new Literal<>(Duration.ZERO);
-        } else if (parameters.isDecimalLiteral()) {
-            return new Literal<>(Duration.ofSeconds((Integer) parameters.getValue()));
         } else if (parameters.isTupleLiteral()) {
             Tuple tuple = (Tuple) parameters.getValue();
             if (tuple.size() > 4 || Stream.of(tuple.types()).anyMatch(t -> t != INT)) {
                 throw LiteralException.wrongDurationParameters(ctx.start);
             }
-            Duration duration = Duration.ofSeconds(getIntValue(tuple, 0))
-                .plusMinutes(getIntValue(tuple, 1));
+            Duration duration = Duration.ofSeconds(getIntValue(tuple, 0));
+            if (tuple.size() > 1) {
+                duration = duration.plusMinutes(getIntValue(tuple, 1));
+            }
             if (tuple.size() > 2) {
                 duration = duration.plusHours(getIntValue(tuple, 2));
             }
@@ -349,15 +363,12 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
 
     @Override
     public Literal visitExpressionList(EventScriptParser.ExpressionListContext ctx) {
-        ExpressionVisitor expressionVisitor = this;
-        if (ctx.expression().size() == 1) {
-            return ctx.expression(0).accept(expressionVisitor);
-        }
+        //@formatter:off
         Tuple tuple = ctx.expression().stream()
-            .map(expCtx -> expCtx.accept(expressionVisitor))
-            .collect(Tuple.Creator::new, Tuple.Creator::add, (no, op) -> {
-            })
+            .map(expCtx -> expCtx.accept(this))
+            .collect(Tuple.Creator::new, Tuple.Creator::add, (no, op) -> {})
             .create();
+        //@formatter:on
 
         return new Literal<>(tuple);
     }
@@ -369,7 +380,15 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     @Override
     public Literal visitSpeakFunc(EventScriptParser.SpeakFuncContext ctx) {
         Literal params = getBuiltInFuncParams(ctx);
-        log.info(params.getValue().toString());
+        if (!params.isTupleLiteral()) {
+            throw FunctionException.argumentException(ctx.start, ctx.SPEAK().getText(), STRING);
+        }
+        Tuple tuple = (Tuple) params.getValue();
+        Type[] speakableTypes = new Type[]{BOOL, FLOAT, INT, STRING};
+        if (tuple.size() != 1 || Stream.of(speakableTypes).noneMatch(type -> type == tuple.types()[0])) {
+            throw FunctionException.argumentException(ctx.start, ctx.SPEAK().getText(), STRING);
+        }
+        log.info(tuple.literals()[0].getValue().toString());
         return Literal.voidLiteral();
     }
 
@@ -378,10 +397,12 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         return super.visitLiteralFuncExp(ctx);
     }
 
+    //TODO implement tuple value retrieval (tuple._1, tuple._2, ...)
     private Literal getLiteralFuncExpression(EventScriptParser.LiteralFunctionContext ctx) {
         return ((EventScriptParser.LiteralFuncExpContext) ctx.parent.parent).expression().accept(this);
     }
 
+    //TODO move to other class using listener
     @Override
     public Literal visitToStringFunc(EventScriptParser.ToStringFuncContext ctx) {
         Literal expression = getLiteralFuncExpression(ctx);
@@ -412,6 +433,57 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
             return new Literal<>(expression.getValue().toString());
         } else {
             throw FunctionException.toStringException(ctx.start, stringableTypes);
+        }
+    }
+
+    @Override
+    public Literal visitFunctionCall(EventScriptParser.FunctionCallContext ctx) {
+        String funcName = ctx.IDENTIFIER().getText();
+        Declarable declarable = scope.lookupSymbol(funcName);
+        if (!(declarable instanceof Function)) {
+            throw FunctionException.cannotResolve(ctx.start, funcName);
+        }
+        Function function = (Function) declarable;
+        Literal paramsLiteral = ctx.parExpressionList().accept(this);
+        if (function.numParams() == 0 && paramsLiteral.isVoidLiteral()) {
+            return callFunction(function);
+        }
+        if (paramsLiteral.isTupleLiteral()) {
+            Tuple tuple = (Tuple) paramsLiteral.getValue();
+            if (function.checkTypes(tuple.types())) {
+                return callFunction(function, tuple);
+            }
+        }
+        throw FunctionException.argumentException(ctx.start, function);
+    }
+
+    private Literal callFunction(Function function) {
+        return callFunction(function, null);
+    }
+
+    private Literal callFunction(Function function, Tuple parameters) {
+        scope.subscope(function);
+        if (parameters != null) {
+            for (int i = 0; i < function.numParams(); i++) {
+                //TODO check define result
+                scope.defineSymbol(function.getParameters().get(i).getName(), parameters.literals()[i]);
+            }
+        }
+        Tuple returnTuple = null;
+        try {
+            functionCallListeners.forEach(listener -> listener.invoke(function.getContext()));
+        } catch (ReturnException e) {
+            returnTuple = e.getReturnTuple();
+        } finally {
+            scope.abandonScope();
+        }
+
+        if (returnTuple == null) {
+            return Literal.voidLiteral();
+        } else if (returnTuple.size() == 1) {
+            return returnTuple.literals()[0];
+        } else {
+            return new Literal<>(returnTuple);
         }
     }
 }
