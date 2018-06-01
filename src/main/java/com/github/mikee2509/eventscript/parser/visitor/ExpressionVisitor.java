@@ -297,11 +297,10 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
 
         if (result != null) return result;
 
-        switch (ctx.bop.getType()) {
-            case EventScriptLexer.EQUAL:
-                return new Literal<>(left.getValue().equals(right.getValue()));
-            default:
-                return new Literal<>(!left.getValue().equals(right.getValue()));
+        if (ctx.bop.getType() == EventScriptLexer.EQUAL) {
+            return new Literal<>(left.getValue().equals(right.getValue()));
+        } else {
+            return new Literal<>(!left.getValue().equals(right.getValue()));
         }
     }
 

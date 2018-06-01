@@ -35,9 +35,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         this.scope = scope;
         this.expressionVisitor = expressionVisitor;
         this.typeVisitor = typeVisitor;
-        expressionVisitor.addFunctionCallListener(functionContext -> {
-            functionContext.block().accept(this);
-        });
+        expressionVisitor.addFunctionCallListener(functionContext -> functionContext.block().accept(this));
     }
 
     @Override
@@ -64,6 +62,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
                 break;
             case FUNC:
             case VOID:
+            default:
                 throw ScopeException.cannotBeDefined(ctx.start, type);
         }
         return null;

@@ -98,7 +98,7 @@ public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
             throw OperationException.differentTypeExpected(ctx.start, TUPLE);
         }
         Tuple tuple = (Tuple) expression.getValue();
-        int index = Integer.valueOf(ctx.TUPLE_EXTRACT().getText().substring(1));
+        int index = Integer.parseInt(ctx.TUPLE_EXTRACT().getText().substring(1));
         if (tuple.size() < index) {
             throw OperationException.tupleExtractException(ctx.start, tuple.size());
         }

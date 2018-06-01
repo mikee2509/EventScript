@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.Token;
 
 @Getter
 public class ReturnException extends ParserException {
-    private Tuple returnTuple;
+    private final Tuple returnTuple;
 
     public ReturnException(Token token, Tuple returnTuple) {
         super(token, "This exception should be caught by function visitor");
