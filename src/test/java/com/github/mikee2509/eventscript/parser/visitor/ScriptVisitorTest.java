@@ -29,7 +29,7 @@ public class ScriptVisitorTest {
     private LiteralArithmetic literalArithmetic;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         typeVisitor = new TypeVisitor();

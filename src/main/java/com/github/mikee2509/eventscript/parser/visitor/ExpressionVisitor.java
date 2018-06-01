@@ -417,7 +417,6 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
                     // this should never happen
                     throw ScopeException.alreadyDefined(function.getContext().start, parameterName);
                 }
-                ;
             }
         }
         Tuple returnTuple = null;

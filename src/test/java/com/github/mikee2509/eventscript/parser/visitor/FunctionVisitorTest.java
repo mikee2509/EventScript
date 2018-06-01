@@ -23,7 +23,7 @@ public class FunctionVisitorTest {
     private LiteralArithmetic literalArithmetic;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();

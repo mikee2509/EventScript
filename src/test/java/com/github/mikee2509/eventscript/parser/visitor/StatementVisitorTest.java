@@ -31,7 +31,7 @@ public class StatementVisitorTest {
     private TypeVisitor typeVisitor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();
