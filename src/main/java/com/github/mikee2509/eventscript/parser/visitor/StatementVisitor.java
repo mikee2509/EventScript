@@ -47,25 +47,24 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
             case BOOL:
                 defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(false));
                 break;
-            case STRING:
-                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(""));
-                break;
-            case INT:
-                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0));
-                break;
-            case FLOAT:
-                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0.0f));
-                break;
-            case FUNC:
-                throw ScopeException.cannotBeDefined(ctx.start, type);
-            case VOID:
-                throw ScopeException.cannotBeDefined(ctx.start, type);
             case DATETIME:
                 defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(LocalDateTime.now()));
                 break;
             case DURATION:
                 defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(Duration.ZERO));
                 break;
+            case FLOAT:
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0.0f));
+                break;
+            case INT:
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(0));
+                break;
+            case STRING:
+                defineVariable(ctx.start, ctx.IDENTIFIER().getText(), new Literal<>(""));
+                break;
+            case FUNC:
+            case VOID:
+                throw ScopeException.cannotBeDefined(ctx.start, type);
         }
         return null;
     }

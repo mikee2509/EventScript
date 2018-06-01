@@ -121,7 +121,7 @@ literalFunction
     ;
 
 function
-    : FUNC IDENTIFIER '(' parameterList? ')' ('->' returnType)? block
+    : FUNC IDENTIFIER '(' parameterList? ')' ('->' returnType)? block eos*
     ;
 
 parameterList

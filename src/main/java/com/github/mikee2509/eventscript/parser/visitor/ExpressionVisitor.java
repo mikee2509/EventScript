@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import static com.github.mikee2509.eventscript.domain.exception.parser.Operation.*;
 import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
+import static com.github.mikee2509.eventscript.domain.expression.Type.VOID;
 
 public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     private ScopeManager scope;
@@ -411,8 +412,12 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         scope.subscope(function);
         if (parameters != null) {
             for (int i = 0; i < function.numParams(); i++) {
-                //TODO check define result
-                scope.defineSymbol(function.getParameters().get(i).getName(), parameters.literals()[i]);
+                String parameterName = function.getParameters().get(i).getName();
+                if (!scope.defineSymbol(parameterName, parameters.literals()[i])) {
+                    // this should never happen
+                    throw ScopeException.alreadyDefined(function.getContext().start, parameterName);
+                }
+                ;
             }
         }
         Tuple returnTuple = null;
@@ -425,6 +430,9 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         }
 
         if (returnTuple == null) {
+            if (function.getReturnType() != VOID) {
+                throw FunctionException.missingReturnStatement(function.getContext().start);
+            }
             return Literal.voidLiteral();
         } else if (returnTuple.size() == 1) {
             return returnTuple.literals()[0];

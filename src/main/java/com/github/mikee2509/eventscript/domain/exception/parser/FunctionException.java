@@ -68,4 +68,8 @@ public class FunctionException extends ParserException {
         }
         return new FunctionException(token, "Function returns: " + typeString);
     }
+
+    public static FunctionException missingReturnStatement(Token token) {
+        return new FunctionException(token, "Missing return statement");
+    }
 }

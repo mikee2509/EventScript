@@ -15,8 +15,8 @@ public enum Type implements Returnable {
     FUNC        (Function.class),
     INT         (Integer.class),
     STRING      (String.class),
-    VOID        (Void.class),
-    TUPLE       (Tuple.class);
+    TUPLE       (Tuple.class),
+    VOID        (Void.class);
     //@formatter:on
 
     private Class<?> javaType;

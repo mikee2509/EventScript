@@ -144,6 +144,93 @@ public class ScriptVisitorTest {
         });
     }
 
-    //TODO test functions returning tuples
+    @Test
+    public void tupleReturningFunctionCall() {
+        ScopeManager scope = new ScopeManager();
+        //@formatter:off
+        String input = "var result = addAndMultiply(2, 5)                   \n" +
+                       "                                                    \n" +
+                       "func addAndMultiply(a: int, b: int) -> (int, int) { \n" +
+                       "   return a + b, a * b                              \n" +
+                       "}                                                     " ;
+        //@formatter:on
+        script(input, scope);
+        assertThat(scope.lookupSymbol("result")).isEqualTo(
+            new Literal<>(
+                new Tuple.Creator()
+                    .add(new Literal<>(7))
+                    .add(new Literal<>(10))
+                    .create()
+            )
+        );
+
+
+        //@formatter:off
+        String input2 = "var result = addAndMultiply(2, 5)                   \n" +
+                        "                                                    \n" +
+                        "func addAndMultiply(a: int, b: int) -> (int, int) { \n" +
+                        "   return a + b                                     \n" +
+                        "}                                                     " ;
+        //@formatter:on
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            script(input2, new ScopeManager());
+        });
+    }
+
+    @Test
+    public void missingReturnFunctionCall() {
+        //@formatter:off
+        String input = "var result = addAndMultiply(2, 5)                   \n" +
+                       "                                                    \n" +
+                       "func addAndMultiply(a: int, b: int) -> (int, int) { \n" +
+                       "   a + b                                            \n" +
+                       "}                                                     " ;
+        //@formatter:on
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            script(input, new ScopeManager());
+        });
+    }
+
+    @Test
+    public void nestedFunctionCalls() {
+        ScopeManager scope = new ScopeManager();
+        //@formatter:off
+        String input = "var result = addThenMultiply(2, 3, 4)                   \n" +
+                       "                                                        \n" +
+                       "func addThenMultiply(a: int, b: int, c: int) -> int {   \n" +
+                       "   return add(a, b) * c                                 \n" +
+                       "}                                                       \n" +
+                       "                                                        \n" +
+                       "func add(a: int, b: int) -> int {                       \n" +
+                       "   return a + b                                         \n" +
+                       "}                                                         " ;
+        //@formatter:on
+
+        script(input, scope);
+        assertThat(scope.lookupSymbol("result")).isEqualTo(new Literal<>(20));
+    }
+
+    @Test
+    public void variableScopes() {
+        ScopeManager scope = new ScopeManager();
+        //@formatter:off
+        String input = "var c = 5                                               \n" +
+                       "var result = addThenMultiply(2, 3, 4)                   \n" +
+                       "                                                        \n" +
+                       "func addThenMultiply(a: int, b: int, c: int) -> int {   \n" +
+                       "   return add(a + 1, b) * c                             \n" +
+                       "}                                                       \n" +
+                       "                                                        \n" +
+                       "func add(a: int, b: int) -> int {                       \n" +
+                       "   c = 0                                                \n" +
+                       "   return a + b                                         \n" +
+                       "}                                                         " ;
+        //@formatter:on
+
+        script(input, scope);
+        assertThat(scope.lookupSymbol("result")).isEqualTo(new Literal<>(24));
+        assertThat(scope.lookupSymbol("c")).isEqualTo(new Literal<>(0));
+    }
+
     //TODO test function scope by invoking function from function
 }
