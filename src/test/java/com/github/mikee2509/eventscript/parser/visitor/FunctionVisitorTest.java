@@ -57,6 +57,18 @@ public class FunctionVisitorTest {
         expression = expression("datetime(2018,5,15,13,45).toString");
         assertThat(expression.isStringLiteral()).isTrue();
         assertThat(expression.getValue()).isEqualTo("2018-05-15 13:45:00");
+
+        expression = expression("123.toString");
+        assertThat(expression.isStringLiteral()).isTrue();
+        assertThat(expression.getValue()).isEqualTo("123");
+
+        ScopeManager scope = new ScopeManager();
+        Literal<String> apple = new Literal<>("apple");
+        scope.defineSymbol("tuple", new Literal<>(Tuple.creator().add(apple).create()));
+
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            expression("tuple.toString", scope);
+        });
     }
 
     @Test
