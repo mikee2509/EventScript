@@ -34,4 +34,7 @@ public class OperationException extends ParserException {
         return new OperationException(token, MessageFormat.format("{0} type expected", type.getName()));
     }
 
+    public static OperationException tupleExtractException(Token token, int numLiterals) {
+        return new OperationException(token, "Tuple has only " + numLiterals + " literals");
+    }
 }

@@ -117,7 +117,7 @@ builtInFunction
 
 literalFunction
     : TO_STRING                #toStringFunc
-    | '_' DECIMAL_LITERAL      #tupleExtractFunc
+    | TUPLE_EXTRACT            #tupleExtractFunc
     ;
 
 function

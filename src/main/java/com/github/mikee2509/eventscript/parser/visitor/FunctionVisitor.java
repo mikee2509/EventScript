@@ -3,6 +3,7 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.exception.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
@@ -36,7 +37,6 @@ public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
         return expressionListener.invoke(builtInFunctionCallContext.parExpressionList());
     }
 
-    //TODO implement tuple value retrieval (tuple._1, tuple._2, ...)
     private Literal getLiteralFuncExpression(EventScriptParser.LiteralFunctionContext ctx) {
         EventScriptParser.LiteralFuncExpContext literalFuncExpContext =
             (EventScriptParser.LiteralFuncExpContext) ctx.parent.parent;
@@ -91,4 +91,17 @@ public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
         }
     }
 
+    @Override
+    public Literal visitTupleExtractFunc(EventScriptParser.TupleExtractFuncContext ctx) {
+        Literal expression = getLiteralFuncExpression(ctx);
+        if (!expression.isTupleLiteral()) {
+            throw OperationException.differentTypeExpected(ctx.start, TUPLE);
+        }
+        Tuple tuple = (Tuple) expression.getValue();
+        int index = Integer.valueOf(ctx.TUPLE_EXTRACT().getText().substring(1));
+        if (tuple.size() < index) {
+            throw OperationException.tupleExtractException(ctx.start, tuple.size());
+        }
+        return tuple.literals()[index-1];
+    }
 }

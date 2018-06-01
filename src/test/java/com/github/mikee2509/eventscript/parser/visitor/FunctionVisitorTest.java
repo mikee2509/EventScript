@@ -1,7 +1,9 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
+import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
@@ -11,8 +13,8 @@ import org.junit.Test;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.assertj.core.api.Assertions.*;
-import static com.github.mikee2509.eventscript.domain.expression.Type.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class FunctionVisitorTest {
     private TestUtils testUtils;
@@ -54,5 +56,39 @@ public class FunctionVisitorTest {
         expression = expression("datetime(2018,5,15,13,45).toString");
         assertThat(expression.isStringLiteral()).isTrue();
         assertThat(expression.getValue()).isEqualTo("2018-05-15 13:45:00");
+    }
+
+    @Test
+    public void tupleExtractFunc() {
+        ScopeManager scope = new ScopeManager();
+        Literal<String> apple = new Literal<>("apple");
+        Literal<Integer> ten = new Literal<>(10);
+        Literal<Float> pi = new Literal<>(3.14f);
+
+        scope.defineSymbol("tuple", new Literal<>(
+            Tuple.creator()
+                .add(apple)
+                .add(ten)
+                .add(pi)
+                .create()
+        ));
+
+        Literal first = expression("tuple._1", scope);
+        Literal second = expression("tuple._2", scope);
+        Literal third = expression("tuple._3", scope);
+
+        assertThat(first).isEqualTo(apple);
+        assertThat(second).isEqualTo(ten);
+        assertThat(third).isEqualTo(pi);
+
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("tuple._4", scope);
+        });
+
+        scope.defineSymbol("myInt", new Literal<>(123));
+        assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
+            expression("myInt._1", scope);
+        });
+
     }
 }

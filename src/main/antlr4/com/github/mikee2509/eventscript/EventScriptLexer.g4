@@ -46,7 +46,7 @@ ON_WIFI_DISABLED:   'OnWifiDisabled';
 
 // Literal functions
 TO_STRING:          'toString';
-
+TUPLE_EXTRACT:      '_' [1-9] Digit*;
 
 
 // Literals
@@ -93,7 +93,6 @@ DIV:                '/';
 MOD:                '%';
 COLON:              ':';
 ARROW:              '->';
-LOWLINE:            '_';
 
 
 // Whitespace and comments
