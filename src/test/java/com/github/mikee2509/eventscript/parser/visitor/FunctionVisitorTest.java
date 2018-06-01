@@ -1,6 +1,7 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
+import com.github.mikee2509.eventscript.domain.exception.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.OperationException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
@@ -89,6 +90,12 @@ public class FunctionVisitorTest {
         assertThatExceptionOfType(OperationException.class).isThrownBy(() -> {
             expression("myInt._1", scope);
         });
+    }
 
+    @Test
+    public void unimplementedFunction() {
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            expression("Launch(\"application\")");
+        });
     }
 }

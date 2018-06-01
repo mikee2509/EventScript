@@ -76,6 +76,6 @@ public class FunctionException extends ParserException {
     }
 
     public static FunctionException unimplementedFunction(Token token, String name) {
-        return new FunctionException(token, MessageFormat.format("Function {0} not yet implemented", name));
+        return new FunctionException(token, MessageFormat.format("Function {0}() not yet implemented", name));
     }
 }

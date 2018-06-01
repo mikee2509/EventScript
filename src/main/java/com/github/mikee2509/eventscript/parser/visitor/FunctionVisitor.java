@@ -104,4 +104,15 @@ public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
         }
         return tuple.literals()[index-1];
     }
+
+    //TODO implement one scheduler function
+
+    @Override
+    public Literal visitBuiltInFunctionCall(EventScriptParser.BuiltInFunctionCallContext ctx) {
+        Literal literal = ctx.builtInFunction().accept(this);
+        if (literal == null) {
+            throw FunctionException.unimplementedFunction(ctx.start, ctx.builtInFunction().getText());
+        }
+        return literal;
+    }
 }
