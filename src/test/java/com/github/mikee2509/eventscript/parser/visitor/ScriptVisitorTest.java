@@ -28,7 +28,7 @@ public class ScriptVisitorTest {
 
     @Before
     public void setUp() throws Exception {
-        testUtils = new TestUtils(Logger.getLogger(ExpressionVisitor.class.getName()));
+        testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         typeVisitor = new TypeVisitor();
         literalArithmetic = new LiteralArithmetic();
@@ -36,7 +36,8 @@ public class ScriptVisitorTest {
 
     private void script(String input, ScopeManager scopeManager) {
         literalArithmetic = new LiteralArithmetic();
-        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic);
+        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         ScriptVisitor scriptVisitor = new ScriptVisitor(scopeManager, statementVisitor, typeVisitor);
         EventScriptParser parser = parserCreator.fromString(input);

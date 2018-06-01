@@ -3,7 +3,6 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
-import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
 import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
 import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
@@ -12,34 +11,31 @@ import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
-import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
-import lombok.AllArgsConstructor;
-import lombok.extern.java.Log;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import static com.github.mikee2509.eventscript.domain.exception.parser.Operation.*;
-import static com.github.mikee2509.eventscript.domain.expression.Type.*;
+import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
 
-@Log
 public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     private ScopeManager scope;
     private LiteralArithmetic la;
+    private FunctionVisitor functionVisitor;
     private List<FunctionCallListener> functionCallListeners = new ArrayList<>();
 
-    public ExpressionVisitor(ScopeManager scope, LiteralArithmetic la) {
+    public ExpressionVisitor(ScopeManager scope, LiteralArithmetic la, FunctionVisitor functionVisitor) {
         this.scope = scope;
         this.la = la;
+        this.functionVisitor = functionVisitor;
+        functionVisitor.setExpressionListener(ctx -> ctx.accept(this));
     }
 
     public void addFunctionCallListener(FunctionCallListener functionCallListener) {
@@ -349,7 +345,10 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         if (!newValue.isOfSameType(currentValue)) {
             throw OperationException.differentTypeExpected(ctx.start, currentValue.getLiteralType());
         }
-        scope.updateSymbol(variable.IDENTIFIER().getText(), newValue); //TODO check return value
+        if (!scope.updateSymbol(variable.IDENTIFIER().getText(), newValue)) {
+            //this should never happen
+            throw ScopeException.undefinedVariable(ctx.start, variable.IDENTIFIER().getText());
+        }
         return newValue;
     }
 
@@ -373,67 +372,14 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         return new Literal<>(tuple);
     }
 
-    private Literal getBuiltInFuncParams(EventScriptParser.BuiltInFunctionContext ctx) {
-        return ((EventScriptParser.BuiltInFunctionCallContext) ctx.parent).parExpressionList().accept(this);
-    }
-
     @Override
-    public Literal visitSpeakFunc(EventScriptParser.SpeakFuncContext ctx) {
-        Literal params = getBuiltInFuncParams(ctx);
-        if (!params.isTupleLiteral()) {
-            throw FunctionException.argumentException(ctx.start, ctx.SPEAK().getText(), STRING);
-        }
-        Tuple tuple = (Tuple) params.getValue();
-        Type[] speakableTypes = new Type[]{BOOL, FLOAT, INT, STRING};
-        if (tuple.size() != 1 || Stream.of(speakableTypes).noneMatch(type -> type == tuple.types()[0])) {
-            throw FunctionException.argumentException(ctx.start, ctx.SPEAK().getText(), STRING);
-        }
-        log.info(tuple.literals()[0].getValue().toString());
-        return Literal.voidLiteral();
+    public Literal visitBuiltInFuncExp(EventScriptParser.BuiltInFuncExpContext ctx) {
+        return ctx.accept(functionVisitor);
     }
 
     @Override
     public Literal visitLiteralFuncExp(EventScriptParser.LiteralFuncExpContext ctx) {
-        return super.visitLiteralFuncExp(ctx);
-    }
-
-    //TODO implement tuple value retrieval (tuple._1, tuple._2, ...)
-    private Literal getLiteralFuncExpression(EventScriptParser.LiteralFunctionContext ctx) {
-        return ((EventScriptParser.LiteralFuncExpContext) ctx.parent.parent).expression().accept(this);
-    }
-
-    //TODO move to other class using listener
-    @Override
-    public Literal visitToStringFunc(EventScriptParser.ToStringFuncContext ctx) {
-        Literal expression = getLiteralFuncExpression(ctx);
-        Type[] stringableTypes = {BOOL, DATETIME, DURATION, FLOAT, INT, STRING};
-        if (Stream.of(stringableTypes).anyMatch(type -> type == expression.getLiteralType())) {
-            if (expression.isDatetimeLiteral()) {
-                LocalDateTime date = (LocalDateTime) expression.getValue();
-                return new Literal<>(date.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)));
-            }
-            if (expression.isDurationLiteral()) {
-                Duration duration = (Duration) expression.getValue();
-                StringBuilder d = new StringBuilder();
-                if (duration.getSeconds() >= 86400) {
-                    d.append(duration.toDays()).append("d ");
-                    duration = duration.minusDays(duration.toDays());
-                }
-                if (duration.getSeconds() >= 3600) {
-                    d.append(duration.toHours()).append("h ");
-                    duration = duration.minusHours(duration.toHours());
-                }
-                if (duration.getSeconds() >= 60) {
-                    d.append(duration.toMinutes()).append("m ");
-                    duration = duration.minusMinutes(duration.toMinutes());
-                }
-                d.append(duration.getSeconds()).append("s");
-                return new Literal<>(d.toString());
-            }
-            return new Literal<>(expression.getValue().toString());
-        } else {
-            throw FunctionException.toStringException(ctx.start, stringableTypes);
-        }
+        return ctx.accept(functionVisitor);
     }
 
     @Override

@@ -32,14 +32,15 @@ public class StatementVisitorTest {
 
     @Before
     public void setUp() throws Exception {
-        testUtils = new TestUtils(Logger.getLogger(ExpressionVisitor.class.getName()));
+        testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();
         typeVisitor = new TypeVisitor();
     }
 
     private void statement(String input, ScopeManager scopeManager) {
-        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic);
+        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         EventScriptParser parser = parserCreator.fromString(input);
         statementVisitor.visit(parser.statement());

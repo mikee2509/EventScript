@@ -15,7 +15,6 @@ import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
 import com.github.mikee2509.eventscript.parser.util.ScopeManager;
-import lombok.AllArgsConstructor;
 import org.antlr.v4.runtime.Token;
 
 import java.time.Duration;
@@ -183,7 +182,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
                 }
             }
 
-            if(returnValues == null || returnValues.size() != 1 ||
+            if (returnValues == null || returnValues.size() != 1 ||
                 requiredType != returnValues.get(0).getLiteralType()) {
                 throw FunctionException.returnTypeException(ctx.start, requiredType);
             }

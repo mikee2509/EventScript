@@ -4,6 +4,7 @@ import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
 import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
@@ -27,7 +28,7 @@ public class ExpressionVisitorTest {
 
     @Before
     public void setUp() throws Exception {
-        testUtils = new TestUtils(Logger.getLogger(ExpressionVisitor.class.getName()));
+        testUtils = new TestUtils(Logger.getLogger(FunctionVisitor.class.getName()));
         parserCreator = new ParserCreator();
         literalArithmetic = new LiteralArithmetic();
     }
@@ -38,7 +39,8 @@ public class ExpressionVisitorTest {
 
     private Literal expression(String input, ScopeManager scopeManager) {
         EventScriptParser parser = parserCreator.fromString(input);
-        ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, literalArithmetic);
+        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         return visitor.visit(parser.expression());
     }
 
@@ -498,24 +500,5 @@ public class ExpressionVisitorTest {
         assertThat(literal.getValue()).isEqualTo(300);
         assertThat(scope.lookupSymbol("secondInt")).isEqualTo(new Literal<>(300));
         assertThat(scope.lookupSymbol("myInt")).isEqualTo(new Literal<>(300));
-    }
-
-    @Test
-    public void speakFunc() {
-        List<String> logRecords = testUtils.captureLogs(() -> {
-            expression("Speak(\"apple\")");
-        });
-        assertThat(logRecords).containsOnly("apple");
-    }
-
-    @Test
-    public void toStringFunc() {
-        Literal expression = expression("duration(1,2,3,4).toString");
-        assertThat(expression.isStringLiteral()).isTrue();
-        assertThat(expression.getValue()).isEqualTo("4d 3h 2m 1s");
-
-        expression = expression("datetime(2018,5,15,13,45).toString");
-        assertThat(expression.isStringLiteral()).isTrue();
-        assertThat(expression.getValue()).isEqualTo("2018-05-15 13:45:00");
     }
 }
