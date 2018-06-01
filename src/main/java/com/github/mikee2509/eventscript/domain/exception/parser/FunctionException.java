@@ -72,4 +72,8 @@ public class FunctionException extends ParserException {
     public static FunctionException missingReturnStatement(Token token) {
         return new FunctionException(token, "Missing return statement");
     }
+
+    public static FunctionException duplicateParameterNames(Token token) {
+        return new FunctionException(token, "Duplicate parameter names");
+    }
 }

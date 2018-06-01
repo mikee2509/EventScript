@@ -87,9 +87,6 @@ public class ScriptVisitorTest {
         });
     }
 
-    //TODO test declaring function with two or more parameters of same name
-    // -> maybe checking defineSymbol() result will do the job
-
     @Test
     public void noParamsFunctionCall() {
         ScopeManager scope = new ScopeManager();
@@ -232,5 +229,17 @@ public class ScriptVisitorTest {
         assertThat(scope.lookupSymbol("c")).isEqualTo(new Literal<>(0));
     }
 
-    //TODO test function scope by invoking function from function
+    @Test
+    public void duplicateParameterNames() {
+        //@formatter:off
+        String input = "var result = sum(2, \"3\")              \n" +
+                       "                                        \n" +
+                       "func sum(a: int, a: string) -> int {    \n" +
+                       "    return a + a                        \n" +
+                       "}                                         " ;
+        //@formatter:on
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            script(input, new ScopeManager());
+        });
+    }
 }
