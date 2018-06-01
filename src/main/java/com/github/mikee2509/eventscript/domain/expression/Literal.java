@@ -5,34 +5,41 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import static com.github.mikee2509.eventscript.domain.expression.Type.*;
+
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class Literal<T> implements Declarable {
     T value;
 
+    private Class<?> getValueClass() {
+        if (value == null) return Void.class;
+        else return value.getClass();
+    }
+
     public Type getLiteralType() {
-        return Type.fromJavaType(value.getClass());
+        return Type.fromJavaType(getValueClass());
     }
 
     public boolean isOfSameType(Literal other) {
-        return this.value.getClass() == other.value.getClass();
+        return this.getValueClass() == other.getValueClass();
     }
 
     public boolean isStringLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.STRING;
+        return getLiteralType() == STRING;
     }
 
     public boolean isFloatLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.FLOAT;
+        return getLiteralType() == FLOAT;
     }
 
     public boolean isDecimalLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.INT;
+        return getLiteralType() == INT;
     }
 
     public boolean isBoolLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.BOOL;
+        return getLiteralType() == BOOL;
     }
 
     public boolean isVoidLiteral() {
@@ -40,15 +47,15 @@ public class Literal<T> implements Declarable {
     }
 
     public boolean isDurationLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.DURATION;
+        return getLiteralType() == DURATION;
     }
 
     public boolean isDatetimeLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.DATETIME;
+        return getLiteralType() == DATETIME;
     }
 
     public boolean isTupleLiteral() {
-        return Type.fromJavaType(value.getClass()) == Type.TUPLE;
+        return getLiteralType() == TUPLE;
     }
 
     public static Literal voidLiteral() {
@@ -59,7 +66,7 @@ public class Literal<T> implements Declarable {
     public String toString() {
         return "Literal{" +
             "value=" + value +
-            " type=" + value.getClass().getCanonicalName() +
+            " type=" + getValueClass().getCanonicalName() +
             '}';
     }
 }

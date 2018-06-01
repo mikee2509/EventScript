@@ -1,8 +1,8 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
-import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import com.github.mikee2509.eventscript.domain.scope.Declarable;
@@ -112,8 +112,6 @@ public class StatementVisitorTest {
         assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
             statement("var myInt = \"Test\";", scope);
         });
-
-        // TODO test creating a variable from function returning void
     }
 
     @Test

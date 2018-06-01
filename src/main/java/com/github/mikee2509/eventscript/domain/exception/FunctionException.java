@@ -1,12 +1,10 @@
-package com.github.mikee2509.eventscript.domain.exception.parser;
+package com.github.mikee2509.eventscript.domain.exception;
 
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Type;
 import org.antlr.v4.runtime.Token;
 
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

@@ -1,10 +1,9 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
-import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
-import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
-import com.github.mikee2509.eventscript.domain.expression.Function;
+import com.github.mikee2509.eventscript.domain.exception.LiteralException;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.parser.ParserCreator;
 import com.github.mikee2509.eventscript.parser.util.LiteralArithmetic;
@@ -15,7 +14,6 @@ import org.junit.Test;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.logging.Logger;
 
 import static com.github.mikee2509.eventscript.domain.expression.Type.INT;

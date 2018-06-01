@@ -1,12 +1,12 @@
-package com.github.mikee2509.eventscript.domain.exception.parser;
+package com.github.mikee2509.eventscript.domain.exception;
 
 import org.antlr.v4.runtime.Token;
 
 import java.text.MessageFormat;
 
-class ParserException extends RuntimeException {
+public class ParserException extends RuntimeException {
 
-    ParserException(Token token, String message) {
+    public ParserException(Token token, String message) {
         super(MessageFormat.format("line {0}:{1} {2}", token.getLine(), token.getCharPositionInLine(), message));
     }
 }

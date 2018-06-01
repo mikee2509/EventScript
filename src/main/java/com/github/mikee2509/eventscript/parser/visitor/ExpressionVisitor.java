@@ -4,10 +4,10 @@ import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
-import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
-import com.github.mikee2509.eventscript.domain.exception.parser.LiteralException;
-import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.LiteralException;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
-import static com.github.mikee2509.eventscript.domain.exception.parser.Operation.*;
+import static com.github.mikee2509.eventscript.domain.exception.Operation.*;
 import static com.github.mikee2509.eventscript.domain.expression.Type.INT;
 import static com.github.mikee2509.eventscript.domain.expression.Type.VOID;
 
@@ -409,7 +409,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     }
 
     private Literal callFunction(Function function, Tuple parameters) {
-        scope.subscope(function);
+        scope.functionSubscope(function);
         if (parameters != null) {
             for (int i = 0; i < function.numParams(); i++) {
                 String parameterName = function.getParameters().get(i).getName();

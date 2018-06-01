@@ -1,4 +1,4 @@
-package com.github.mikee2509.eventscript.domain.exception.parser;
+package com.github.mikee2509.eventscript.domain.exception;
 
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Type;

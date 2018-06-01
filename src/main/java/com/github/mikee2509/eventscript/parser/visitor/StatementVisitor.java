@@ -2,13 +2,13 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
+import com.github.mikee2509.eventscript.domain.exception.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.OperationException;
+import com.github.mikee2509.eventscript.domain.exception.ScopeException;
 import com.github.mikee2509.eventscript.domain.exception.control.BreakException;
 import com.github.mikee2509.eventscript.domain.exception.control.ContinueException;
 import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
 import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
-import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
-import com.github.mikee2509.eventscript.domain.exception.parser.OperationException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Returnable;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
@@ -104,11 +104,9 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         scope.subscope();
         try {
             visitChildren(ctx);
-        } catch (ControlFlowException e) {
+        } finally {
             scope.abandonScope();
-            throw e;
         }
-        scope.abandonScope();
         return null;
     }
 
@@ -120,7 +118,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
 
     @Override
     public Void visitForStmt(EventScriptParser.ForStmtContext ctx) {
-        scope.subscope();
+        scope.loopSubscope();
         ctx.forInit().accept(this);
         try {
             for (Literal expression = ctx.expression().accept(expressionVisitor);
@@ -132,8 +130,9 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
                 }
             }
         } catch (BreakException ignored) {
+        } finally {
+            scope.abandonScope();
         }
-        scope.abandonScope();
         return null;
     }
 
@@ -149,19 +148,29 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         return null;
     }
 
-    //TODO check in what context continue or break is invoked
     @Override
     public Void visitBreakStmt(EventScriptParser.BreakStmtContext ctx) {
-        throw new BreakException();
+        if (scope.isLoopScope()) {
+            throw new BreakException(ctx.start);
+        } else {
+            throw ControlFlowException.breakWrongContext(ctx.start);
+        }
     }
 
     @Override
     public Void visitContinueStmt(EventScriptParser.ContinueStmtContext ctx) {
-        throw new ContinueException();
+        if (scope.isLoopScope()) {
+            throw new ContinueException(ctx.start);
+        } else {
+            throw ControlFlowException.continueWrongContext(ctx.start);
+        }
     }
 
     @Override
     public Void visitReturnStmt(EventScriptParser.ReturnStmtContext ctx) {
+        if (!scope.isFunctionScope()) {
+            throw ControlFlowException.returnWrongContext(ctx.start);
+        }
         List<Literal> returnValues = null;
         if (ctx.expressionList() != null) {
             returnValues = ctx.expressionList().expression().stream()
@@ -175,7 +184,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
 
             if (requiredType == VOID) {
                 if (returnValues == null) {
-                    throw new ReturnException(null);
+                    throw new ReturnException(ctx.start, null);
                 } else {
                     throw FunctionException.returnTypeException(ctx.start, requiredType);
                 }
@@ -187,7 +196,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
             }
 
             Tuple tuple = Tuple.creator().add(returnValues.get(0)).create();
-            throw new ReturnException(tuple);
+            throw new ReturnException(ctx.start, tuple);
         } else {
             Tuple requiredTuple = (Tuple) returnType;
             if (returnValues == null) {
@@ -196,7 +205,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
 
             Type[] valueTypes = returnValues.stream().map(Literal::getLiteralType).toArray(Type[]::new);
             if (Arrays.equals(requiredTuple.types(), valueTypes)) {
-                throw new ReturnException(Tuple.fromLiteralList(returnValues));
+                throw new ReturnException(ctx.start, Tuple.fromLiteralList(returnValues));
             } else {
                 throw FunctionException.returnTypeException(ctx.start, requiredTuple.types());
             }

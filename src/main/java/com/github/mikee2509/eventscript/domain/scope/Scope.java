@@ -11,18 +11,24 @@ public class Scope {
     private Map<String, Declarable> symbolTable = new HashMap<>();
     private Scope parentScope;
     private Function function;
+    private boolean isLoopScope;
 
-    private Scope(Scope parentScope, Function function) {
+    private Scope(Scope parentScope, Function function, boolean isLoopScope) {
         this.parentScope = parentScope;
         this.function = function;
+        this.isLoopScope = isLoopScope;
     }
 
     public Scope subscope() {
-        return new Scope(this, this.function);
+        return new Scope(this, this.function, false);
     }
 
-    public Scope subscope(Function function) {
-        return new Scope(this, function);
+    public Scope loopSubscope() {
+        return new Scope(this, this.function, true);
+    }
+
+    public Scope functionSubscope(Function function) {
+        return new Scope(this, function, false);
     }
 
     public Scope getParentScope() {
@@ -31,6 +37,21 @@ public class Scope {
 
     public Function getFunction() {
         return function;
+    }
+
+    public boolean isLoopScope() {
+        for (Scope currentScope = this; currentScope != null; currentScope = currentScope.parentScope) {
+            if (currentScope.function != null) return false;
+            if (currentScope.isLoopScope) return true;
+        }
+        return false;
+    }
+
+    public boolean isFunctionScope() {
+        for (Scope currentScope = this; currentScope != null; currentScope = currentScope.parentScope) {
+            if (currentScope.function != null) return true;
+        }
+        return false;
     }
 
     public boolean defineSymbol(String identifier, Declarable value) {

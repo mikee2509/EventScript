@@ -15,8 +15,12 @@ public class ScopeManager {
         scope = scope.subscope();
     }
 
-    public void subscope(Function function) {
-        scope = scope.subscope(function);
+    public void functionSubscope(Function function) {
+        scope = scope.functionSubscope(function);
+    }
+
+    public void loopSubscope() {
+        scope = scope.loopSubscope();
     }
 
     public void abandonScope() {
@@ -41,6 +45,14 @@ public class ScopeManager {
 
     public boolean isRootScope() {
         return scope.getParentScope() == null;
+    }
+
+    public boolean isLoopScope() {
+        return scope.isLoopScope();
+    }
+
+    public boolean isFunctionScope() {
+        return scope.isFunctionScope();
     }
 
     public int numGloballyDefinedSymbols() {

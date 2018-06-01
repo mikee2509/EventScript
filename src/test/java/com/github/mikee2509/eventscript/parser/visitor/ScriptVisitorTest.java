@@ -1,8 +1,9 @@
 package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
-import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
-import com.github.mikee2509.eventscript.domain.exception.parser.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import static com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException.*;
 import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -32,6 +34,10 @@ public class ScriptVisitorTest {
         parserCreator = new ParserCreator();
         typeVisitor = new TypeVisitor();
         literalArithmetic = new LiteralArithmetic();
+    }
+
+    private void script(String input) {
+        script(input, new ScopeManager());
     }
 
     private void script(String input, ScopeManager scopeManager) {
@@ -111,7 +117,7 @@ public class ScriptVisitorTest {
                         "}                          " ;
         //@formatter:on
         assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
-            script(input2, new ScopeManager());
+            script(input2);
         });
     }
 
@@ -137,7 +143,7 @@ public class ScriptVisitorTest {
                         "}                                    " ;
         //@formatter:on
         assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
-            script(input2, new ScopeManager());
+            script(input2);
         });
     }
 
@@ -170,7 +176,7 @@ public class ScriptVisitorTest {
                         "}                                                     " ;
         //@formatter:on
         assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
-            script(input2, new ScopeManager());
+            script(input2);
         });
     }
 
@@ -184,7 +190,7 @@ public class ScriptVisitorTest {
                        "}                                                     " ;
         //@formatter:on
         assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
-            script(input, new ScopeManager());
+            script(input);
         });
     }
 
@@ -239,7 +245,99 @@ public class ScriptVisitorTest {
                        "}                                         " ;
         //@formatter:on
         assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
-            script(input, new ScopeManager());
+            script(input);
         });
+    }
+
+    @Test
+    public void createVariableFromFunction() {
+        //@formatter:off
+        String input = "var apple = 2             \n" +
+                       "var x = incrementApple()  \n" +
+                       "                          \n" +
+                       "func incrementApple() {   \n" +
+                       "    ++apple               \n" +
+                       "}                           " ;
+        //@formatter:on
+        assertThatExceptionOfType(ScopeException.class).isThrownBy(() -> {
+            script(input);
+        });
+    }
+
+    @Test
+    public void breakStatementInWrongContext() {
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script("break;");
+        }).withMessageContaining(BREAK_IN_WRONG_CONTEXT);
+
+        //@formatter:off
+        String input = "var apple = 2       \n" +
+                       "if (apple == 2) {   \n" +
+                       "   break            \n" +
+                       "}                     " ;
+        //@formatter:on
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script(input);
+        }).withMessageContaining(BREAK_IN_WRONG_CONTEXT);
+
+        //@formatter:off
+        String input2 = "for (var i = 0; i < 5; ++i) {      \n" +
+                        "   add(i, i + 1)                   \n" +
+                        "}                                  \n" +
+                        "                                   \n" +
+                        "func add(a: int, b: int) -> int {  \n" +
+                        "   break                           \n" +
+                        "}                                    " ;
+        //@formatter:on
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script(input2);
+        }).withMessageContaining(BREAK_IN_WRONG_CONTEXT);
+    }
+
+    @Test
+    public void continueStatementInWrongContext() {
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script("continue;");
+        }).withMessageContaining(CONTINUE_IN_WRONG_CONTEXT);
+
+        //@formatter:off
+        String input = "var apple = 2       \n" +
+                       "if (apple == 2) {   \n" +
+                       "   continue         \n" +
+                       "}                     " ;
+        //@formatter:on
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script(input);
+        }).withMessageContaining(CONTINUE_IN_WRONG_CONTEXT);
+
+        //@formatter:off
+        String input2 = "for (var i = 0; i < 5; ++i) {      \n" +
+                        "   add(i, i + 1)                   \n" +
+                        "}                                  \n" +
+                        "                                   \n" +
+                        "func add(a: int, b: int) -> int {  \n" +
+                        "   continue                        \n" +
+                        "}                                    " ;
+        //@formatter:on
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script(input2);
+        }).withMessageContaining(CONTINUE_IN_WRONG_CONTEXT);
+    }
+
+    @Test
+    public void returnStatementInWrongContext() {
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script("return;");
+        }).withMessageContaining(RETURN_IN_WRONG_CONTEXT);
+
+        //@formatter:off
+        String input = "var apple = 2       \n" +
+                       "if (apple == 2) {   \n" +
+                       "   return           \n" +
+                       "}                     " ;
+        //@formatter:on
+        assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
+            script(input);
+        }).withMessageContaining(RETURN_IN_WRONG_CONTEXT);
     }
 }

@@ -2,7 +2,7 @@ package com.github.mikee2509.eventscript.parser.visitor;
 
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
-import com.github.mikee2509.eventscript.domain.exception.parser.FunctionException;
+import com.github.mikee2509.eventscript.domain.exception.FunctionException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Returnable;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
