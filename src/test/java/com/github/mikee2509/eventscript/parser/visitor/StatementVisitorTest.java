@@ -62,7 +62,7 @@ public class StatementVisitorTest {
         statement("var myString : string;", scope);
         assertThat(scope.lookupSymbol("myString")).isEqualTo(new Literal<>(""));
 
-        statement("var myDuration : duration", scope);
+        statement("var myDuration : duration;", scope);
         assertThat(scope.lookupSymbol("myDuration")).isEqualTo(new Literal<>(Duration.ZERO));
 
         statement("var currentDate : datetime;", scope);
