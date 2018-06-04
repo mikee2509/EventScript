@@ -3,11 +3,11 @@ package com.github.mikee2509.eventscript.parser.visitor;
 import com.github.mikee2509.eventscript.EventScriptLexer;
 import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
-import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
 import com.github.mikee2509.eventscript.domain.exception.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.LiteralException;
 import com.github.mikee2509.eventscript.domain.exception.OperationException;
 import com.github.mikee2509.eventscript.domain.exception.ScopeException;
+import com.github.mikee2509.eventscript.domain.exception.control.ReturnException;
 import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
@@ -17,8 +17,6 @@ import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
@@ -30,17 +28,18 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     private ScopeManager scope;
     private LiteralArithmetic la;
     private FunctionVisitor functionVisitor;
-    private List<FunctionCallListener> functionCallListeners = new ArrayList<>();
+    private FunctionCallListener functionCallListener = (ctx) -> {};
 
     public ExpressionVisitor(ScopeManager scope, LiteralArithmetic la, FunctionVisitor functionVisitor) {
         this.scope = scope;
         this.la = la;
         this.functionVisitor = functionVisitor;
-        functionVisitor.setExpressionListener(ctx -> ctx.accept(this));
+        this.functionVisitor.setExpressionListener(ctx -> ctx.accept(this));
     }
 
-    public void addFunctionCallListener(FunctionCallListener functionCallListener) {
-        functionCallListeners.add(functionCallListener);
+    public void setFunctionCallListener(FunctionCallListener functionCallListener) {
+        this.functionCallListener = functionCallListener;
+        functionVisitor.setFunctionCallListener(functionCallListener);
     }
 
     private interface LiteralOperation {
@@ -328,8 +327,11 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
     @Override
     public Literal visitIdentifierExp(EventScriptParser.IdentifierExpContext ctx) {
         Declarable declarable = scope.lookupSymbol(ctx.IDENTIFIER().getText());
-        if (!(declarable instanceof Literal)) {
+        if (declarable == null) {
             throw ScopeException.undefinedVariable(ctx.start, ctx.IDENTIFIER().getText());
+        }
+        if (declarable instanceof Function) {
+            declarable = Literal.voidLiteral();
         }
         return (Literal) declarable;
     }
@@ -420,7 +422,7 @@ public class ExpressionVisitor extends EventScriptParserBaseVisitor<Literal> {
         }
         Tuple returnTuple = null;
         try {
-            functionCallListeners.forEach(listener -> listener.invoke(function.getContext()));
+            functionCallListener.invoke(function.getContext());
         } catch (ReturnException e) {
             returnTuple = e.getReturnTuple();
         } finally {

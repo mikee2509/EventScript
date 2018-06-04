@@ -35,7 +35,7 @@ public class StatementVisitor extends EventScriptParserBaseVisitor<Void> {
         this.scope = scope;
         this.expressionVisitor = expressionVisitor;
         this.typeVisitor = typeVisitor;
-        expressionVisitor.addFunctionCallListener(functionContext -> functionContext.block().accept(this));
+        expressionVisitor.setFunctionCallListener(functionContext -> functionContext.block().accept(this));
     }
 
     @Override

@@ -37,4 +37,8 @@ public class Function implements Declarable {
     public Type[] getParameterTypes() {
         return parameters.stream().map(p -> p.type).toArray(Type[]::new);
     }
+
+    public boolean isSchedulable() {
+        return returnType == Type.VOID && numParams() == 0;
+    }
 }

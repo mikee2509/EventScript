@@ -39,7 +39,8 @@ public class StatementVisitorTest {
     }
 
     private void statement(String input, ScopeManager scopeManager) {
-        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        FuncParamVisitor funcParamVisitor = new FuncParamVisitor(scopeManager);
+        FunctionVisitor functionVisitor = new FunctionVisitor(funcParamVisitor);
         ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         EventScriptParser parser = parserCreator.fromString(input);

@@ -15,12 +15,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.mikee2509.eventscript.domain.exception.control.ControlFlowException.*;
 import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ScriptVisitorTest {
     private TestUtils testUtils;
@@ -42,7 +46,8 @@ public class ScriptVisitorTest {
 
     private void script(String input, ScopeManager scopeManager) {
         literalArithmetic = new LiteralArithmetic();
-        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        FuncParamVisitor funcParamVisitor = new FuncParamVisitor(scopeManager);
+        FunctionVisitor functionVisitor = new FunctionVisitor(funcParamVisitor);
         ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         ScriptVisitor scriptVisitor = new ScriptVisitor(scopeManager, statementVisitor, typeVisitor);
@@ -339,5 +344,49 @@ public class ScriptVisitorTest {
         assertThatExceptionOfType(ControlFlowException.class).isThrownBy(() -> {
             script(input);
         }).withMessageContaining(RETURN_IN_WRONG_CONTEXT);
+    }
+
+    @Test
+    public void onIntervalFunc() throws InterruptedException {
+        //@formatter:off
+        String input = "OnInterval(sayHello, duration(1), duration())   \n" +
+                       "                                                \n" +
+                       "func sayHello() {                               \n" +
+                       "    Speak(\"Hello\")                            \n" +
+                       "}                                                 " ;
+        //@formatter:on
+        List<String> logs = testUtils.captureLogs(() -> {
+            script(input);
+            try {
+                Thread.sleep(2_050);
+            } catch (InterruptedException e) {
+                fail("Scheduled task was interrupted");
+            }
+        });
+
+        assertThat(logs).isEqualTo(IntStream.range(0, 3)
+            .mapToObj(value -> "Hello")
+            .collect(Collectors.toList()));
+    }
+
+    @Test
+    public void functionsPassedByInvocation() {
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            script("OnInterval(Speak(\"Hello\"), duration(1), duration());");
+        });
+    }
+
+    @Test
+    public void onlyNoParamFunctionCanBeScheduled() {
+        //@formatter:off
+        String input = "OnInterval(sayHello, duration(1), duration())   \n" +
+                       "                                                \n" +
+                       "func sayHello(a: int) {                         \n" +
+                       "    Speak(\"Hello\")                            \n" +
+                       "}                                                 " ;
+        //@formatter:on
+        assertThatExceptionOfType(FunctionException.class).isThrownBy(() -> {
+            script(input);
+        });
     }
 }

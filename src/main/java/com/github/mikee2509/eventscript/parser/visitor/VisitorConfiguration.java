@@ -13,7 +13,7 @@ public class VisitorConfiguration {
     @Scope("prototype")
     public ScriptVisitor scriptVisitor(TypeVisitor typeVisitor) {
         ScopeManager scopeManager = new ScopeManager();
-        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        FunctionVisitor functionVisitor = new FunctionVisitor(new FuncParamVisitor(scopeManager));
         ExpressionVisitor expressionVisitor = new ExpressionVisitor(scopeManager, new LiteralArithmetic(), functionVisitor);
         StatementVisitor statementVisitor = new StatementVisitor(scopeManager, expressionVisitor, typeVisitor);
         return new ScriptVisitor(scopeManager, statementVisitor, typeVisitor);

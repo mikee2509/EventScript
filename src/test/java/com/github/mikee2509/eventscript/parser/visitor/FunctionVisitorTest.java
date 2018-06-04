@@ -35,7 +35,8 @@ public class FunctionVisitorTest {
 
     private Literal expression(String input, ScopeManager scopeManager) {
         EventScriptParser parser = parserCreator.fromString(input);
-        FunctionVisitor functionVisitor = new FunctionVisitor(scopeManager);
+        FuncParamVisitor funcParamVisitor = new FuncParamVisitor(scopeManager);
+        FunctionVisitor functionVisitor = new FunctionVisitor(funcParamVisitor);
         ExpressionVisitor visitor = new ExpressionVisitor(scopeManager, literalArithmetic, functionVisitor);
         return visitor.visit(parser.expression());
     }

@@ -4,37 +4,49 @@ import com.github.mikee2509.eventscript.EventScriptParser;
 import com.github.mikee2509.eventscript.EventScriptParserBaseVisitor;
 import com.github.mikee2509.eventscript.domain.exception.FunctionException;
 import com.github.mikee2509.eventscript.domain.exception.OperationException;
+import com.github.mikee2509.eventscript.domain.expression.Function;
 import com.github.mikee2509.eventscript.domain.expression.Literal;
 import com.github.mikee2509.eventscript.domain.expression.Tuple;
 import com.github.mikee2509.eventscript.domain.expression.Type;
-import com.github.mikee2509.eventscript.parser.util.ScopeManager;
 import lombok.extern.java.Log;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.github.mikee2509.eventscript.domain.expression.Type.*;
 
 @Log
 public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
-    private ScopeManager scope;
-    ExpressionListener expressionListener;
+    private FuncParamVisitor funcParamVisitor;
+    private ExpressionListener expressionListener;
+    private FunctionCallListener functionCallListener = (ctx) -> {};
 
-    public FunctionVisitor(ScopeManager scope) {
-        this.scope = scope;
+    public FunctionVisitor(FuncParamVisitor funcParamVisitor) {
+        this.funcParamVisitor = funcParamVisitor;
     }
 
     public void setExpressionListener(ExpressionListener expressionListener) {
         this.expressionListener = expressionListener;
     }
 
+    public void setFunctionCallListener(FunctionCallListener functionCallListener) {
+        this.functionCallListener = functionCallListener;
+    }
+
     private Literal getBuiltInFuncParams(EventScriptParser.BuiltInFunctionContext ctx) {
         EventScriptParser.BuiltInFunctionCallContext builtInFunctionCallContext =
             (EventScriptParser.BuiltInFunctionCallContext) ctx.parent;
         return expressionListener.invoke(builtInFunctionCallContext.parExpressionList());
+    }
+
+    private Function getFuncParam(EventScriptParser.BuiltInFunctionContext ctx) {
+        EventScriptParser.BuiltInFunctionCallContext builtInFunctionCallContext =
+            (EventScriptParser.BuiltInFunctionCallContext) ctx.parent;
+        return builtInFunctionCallContext.parExpressionList().accept(funcParamVisitor);
     }
 
     private Literal getLiteralFuncExpression(EventScriptParser.LiteralFunctionContext ctx) {
@@ -102,10 +114,37 @@ public class FunctionVisitor extends EventScriptParserBaseVisitor<Literal> {
         if (tuple.size() < index) {
             throw OperationException.tupleExtractException(ctx.start, tuple.size());
         }
-        return tuple.literals()[index-1];
+        return tuple.literals()[index - 1];
     }
 
-    //TODO implement one scheduler function
+    @Override
+    public Literal visitOnIntervalScheduleFunc(EventScriptParser.OnIntervalScheduleFuncContext ctx) {
+        Literal params = getBuiltInFuncParams(ctx);
+        Function func = getFuncParam(ctx);
+        Type[] paramTypes = {VOID, DURATION, DURATION};
+        if (func == null || !params.isTupleLiteral()) {
+            throw FunctionException.argumentException(ctx.start, ctx.ON_INTERVAL().getText(), paramTypes);
+        }
+        Tuple tuple = (Tuple) params.getValue();
+        if (!Arrays.equals(tuple.types(), paramTypes)) {
+            throw FunctionException.argumentException(ctx.start, ctx.ON_INTERVAL().getText(), paramTypes);
+        }
+        Duration interval = (Duration) tuple.literals()[1].getValue();
+        Duration startDelay = (Duration) tuple.literals()[2].getValue();
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    functionCallListener.invoke(func.getContext());
+                }
+            },
+            startDelay.toMillis(),
+            interval.toMillis()
+        );
+
+        return Literal.voidLiteral();
+    }
 
     @Override
     public Literal visitBuiltInFunctionCall(EventScriptParser.BuiltInFunctionCallContext ctx) {
