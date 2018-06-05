@@ -64,7 +64,7 @@ public class Scope {
 
     public Declarable lookupSymbol(String identifier) {
         for (Scope currentScope = this; currentScope != null; currentScope = currentScope.parentScope) {
-            if (currentScope != this && currentScope.function != null) continue;
+            if (currentScope.function != null && currentScope.function != function) continue;
             Declarable value = currentScope.symbolTable.get(identifier);
             if (value != null) return value;
         }
@@ -73,7 +73,7 @@ public class Scope {
 
     public boolean updateSymbol(String identifier, Declarable value) {
         for (Scope currentScope = this; currentScope != null; currentScope = currentScope.parentScope) {
-            if (currentScope != this && currentScope.function != null) continue;
+            if (currentScope.function != null && currentScope.function != function) continue;
             if (currentScope.symbolTable.containsKey(identifier)) {
                 currentScope.symbolTable.put(identifier, value);
                 return true;
