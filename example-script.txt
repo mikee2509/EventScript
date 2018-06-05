@@ -1,0 +1,24 @@
+/* Print triangles of odd height */
+
+var globalHeight = 1
+OnInterval(action, duration(1), duration())
+
+func action() {
+	if (globalHeight % 2 == 0) {
+		Speak("skipping even height = " + globalHeight)
+	} else {
+		printTriangle(globalHeight)
+	}
+	++globalHeight
+}
+
+func printTriangle(height: int) {
+	var line : string
+	for (var i = 1; i <= height; ++i) {
+		line = ""
+		for (var j = 0; j < i; ++j) {
+			line = line + "*"
+		}
+		Speak(line)
+	}
+}	
