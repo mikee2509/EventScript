@@ -123,7 +123,7 @@ public class StatementVisitorTest {
         String input = "if (true) {         \n" +
                        "   myInt = 10       \n" +
                        "} else {            \n" +
-                       "   my  Int = 20     \n" +
+                       "   myInt = 20       \n" +
                        "}                     " ;
         //@formatter:on
         statement(input, scope);
