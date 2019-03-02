@@ -1,6 +1,7 @@
 # EventScript
+See [EventScript_dokumentacja.pdf](docs/EventScript_dokumentacja.pdf) to learn more about this project (Polish language).
 
-### Windows
+## Running on Windows
 ```
 mvnw.cmd package
 cd target
